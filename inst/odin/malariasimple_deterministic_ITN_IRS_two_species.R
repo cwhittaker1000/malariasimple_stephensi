@@ -700,6 +700,7 @@ av_mosq_species2[1:num_int] <- av_species2 * w_species2[i] / wh_species2 # rate 
 dim(av_human_species2) <- num_int
 av_human_species2[1:num_int] <- av_species2 * yy_species2[i] / wh_species2 # biting rate on humans in each int. cat.
 
+
 ##------------------------------------------------------------------------------
 ###################
 ## MODEL OUTPUTS ##
