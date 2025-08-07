@@ -1,9 +1,5 @@
 ## DECLARE TIME STEPS
 n_days <- parameter()
-
-dim(theta_species1_input) <- n_days +1
-theta_species1_input <- parameter()
-
 dim(days) <- n_days + 1
 days <- parameter()
 
@@ -516,15 +512,24 @@ lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_spe
 ## K0 <- 2*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1) ## ie just using mu0
 ## in malariasimple:
 ## K0 <- 2*dLL*mv0*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+# parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
+density_vec_species1[] <- parameter()
+dim(density_vec_species1) <- n_days +1
+density_vec_species2[] <- parameter()
+dim(density_vec_species2) <- n_days +1
 K0_species1 <- if(as.integer(step) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
   2*density_vec_species1[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 K0_species2 <- if(as.integer(step) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
   2*density_vec_species2[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 
-# Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-theta_species1 <- interpolate(days, theta_species1_input, "linear")
-theta_species2 <- _________ ## still need to define theta_species2 somewhere
+# Defining seasonal variation in carrying capacity (KL = base carrying capacity K0 * effect for time of year theta)
+theta_species1_input <- parameter()
+dim(theta_species1_input) <- n_days +1
+theta_species1 <- if(as.integer(step) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(step)]
 
+theta_species2_input[] <- parameter()
+dim(theta_species2_input) <- n_days +1
+theta_species2 <- if(as.integer(step) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(step)]
 
 # Converting all that into time-varying carryin capacity
 KL_species1 <- K0_species1 * theta_species1
@@ -536,18 +541,37 @@ mu_species2 <- -blood_meal_rate_species2*log(p1*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- parameter()
-initial(PL) <- init_PL
 init_LL <- parameter()
-initial(LL) <- init_LL
 init_EL <- parameter()
-initial(EL) <- init_EL
 
+initial(PL_species1) <- init_PL
+initial(LL_species1) <- init_LL
+initial(EL_species1) <- init_EL
+initial(PL_species2) <- init_PL * 0.01 ## CHECK - this is a bit of a fudge, but aim here is to initialise with a small, non-zero number (to reflect absence of stephensi at start of model run) so I think hopefully okay!
+initial(LL_species2) <- init_LL * 0.01
+initial(EL_species2) <- init_EL * 0.01
+
+## For Species 1
 # (beta_larval (egg rate) * total mosquito) - den. dep. egg mortality - egg hatching
-update(EL) <- if(EL + dt*(beta_larval*mv-muEL*(1+(EL+LL)/KL)*EL - EL/dEL) < 0) 0 else (EL + dt*(beta_larval*mv-muEL*(1+(EL+LL)/KL)*EL - EL/dEL))
+update(EL_species1) <- if(EL_species1 + dt*(beta_larval_species1*mv_species1-muEL*(1+(EL_species1+LL_species1)/KL_species1)*EL_species1 - EL_species1/dEL) < 0) 0 else 
+  (EL_species1 + dt*(beta_larval_species1*mv_species1-muEL*(1+(EL_species1+LL_species1)/KL_species1)*EL_species1 - EL_species1/dEL))
 # egg hatching - den. dep. mortality - maturing larvae
-update(LL) <- if(LL + dt*(EL/dEL - muLL*(1+gammaL*(EL + LL)/KL)*LL - LL/dLL) < 0) 0 else (LL + dt*(EL/dEL - muLL*(1+gammaL*(EL + LL)/KL)*LL - LL/dLL))
+update(LL_species1) <- if(LL_species1 + dt*(EL_species1/dEL - muLL*(1+gammaL*(EL_species1 + LL_species1)/KL_species1)*LL_species1 - LL_species1/dLL) < 0) 0 else 
+  (LL_species1 + dt*(EL_species1/dEL - muLL*(1+gammaL*(EL_species1 + LL_species1)/KL_species1)*LL_species1 - LL_species1/dLL))
 # pupae - mortality - fully developed pupae
-update(PL) <- if(PL + dt*(LL/dLL - muPL*PL - PL/dPL) < 0) 0 else (PL + dt*(LL/dLL - muPL*PL - PL/dPL))
+update(PL_species1) <- if(PL_species1 + dt*(LL_species1/dLL - muPL*PL_species1 - PL_species1/dPL) < 0) 0 else 
+  (PL_species1 + dt*(LL_species1/dLL - muPL*PL_species1 - PL_species1/dPL))
+
+## For Species 2
+# (beta_larval (egg rate) * total mosquito) - den. dep. egg mortality - egg hatching
+update(EL_species2) <- if(EL_species2 + dt*(beta_larval_species2*mv_species2-muEL*(1+(EL_species2+LL_species2)/KL_species2)*EL_species2 - EL_species2/dEL) < 0) 0 else 
+  (EL_species2 + dt*(beta_larval_species2*mv_species2-muEL*(1+(EL_species2+LL_species2)/KL_species2)*EL_species2 - EL_species2/dEL))
+# egg hatching - den. dep. mortality - maturing larvae
+update(LL_species2) <- if(LL_species2 + dt*(EL_species2/dEL - muLL*(1+gammaL*(EL_species2 + LL_species2)/KL_species2)*LL_species2 - LL_species2/dLL) < 0) 0 else 
+  (LL_species2 + dt*(EL_species2/dEL - muLL*(1+gammaL*(EL_species2 + LL_species2)/KL_species2)*LL_species2 - LL_species2/dLL))
+# pupae - mortality - fully developed pupae
+update(PL_species2) <- if(PL_species2 + dt*(LL_species2/dLL - muPL*PL_species2 - PL_species2/dPL) < 0) 0 else 
+  (PL_species2 + dt*(LL_species2/dLL - muPL*PL_species2 - PL_species2/dPL))
 
 
 ##------------------------------------------------------------------------------
