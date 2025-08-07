@@ -226,12 +226,21 @@ FOI[,,] <- FOI_XL[i,j,k,lag_rates]
 # rate for age group * rate for biting category * FOI for age group * prop of
 # infectious mosquitoes
 dim(psi) <- na
-psi <- parameter()
+psi <- parameter()           # age-specific modifier for biting
 dim(zeta) <- nh
-zeta <- parameter()
+zeta <- parameter()          # rates for different biting categories
+
 dim(EIR) <- c(na,nh,num_int)
+dim(EIR_species1) <- c(na,nh,num_int)
+dim(EIR_species2) <- c(na,nh,num_int)
+
 #EIR[,,] <- av_human[k] * zeta[j] * psi[i] * Iv/omega
-EIR[,,] <- av_mosq[k] * zeta[j] * psi[i] * Iv/omega
+EIR_species1[,,] <- av_mosq_species1[k] * zeta[j] * psi[i] * Iv_species1/omega
+EIR_species2[,,] <- av_mosq_species2[k] * zeta[j] * psi[i] * Iv_species2/omega
+EIR[,,] <- EIR_species1[i,j,k] + EIR_species2[i,j,k]
+# Note: Previous versions of the model (ICDMM) I've used had av_human[k] in the EIR calculation 
+#       instead of av_mosq - which of these is correct? I had thought av_human?
+#       What is the #difference between av_mosq and av_human actually?
 
 ##------------------------------------------------------------------------------
 #####################
@@ -355,9 +364,12 @@ p_det[,,] <- d1 + (1-d1)/(1 + fd[i]*(ID[i,j,k]/ID0)^kD)
 init_Sv <- parameter()
 init_Pv <- parameter()
 init_Iv <- parameter()
-initial(Sv) <- init_Sv * mv0
-initial(Pv) <- init_Pv * mv0
-initial(Iv) <- init_Iv * mv0
+initial(Sv_species1) <- init_Sv * mv0
+initial(Ev_species1) <- init_Ev * mv0
+initial(Iv_species1) <- init_Iv * mv0
+initial(Sv_species2) <- init_Sv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
+initial(Ev_species2) <- init_Ev * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
+initial(Iv_species2) <- init_Iv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -372,60 +384,91 @@ cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
 lag_ratesMos <- parameter(type = "integer")
 
 FOIv_eq <- parameter()
+
 dim(FOIv) <- lag_ratesMos
 initial(FOIv[]) <- FOIv_eq*delayGam/lag_ratesMos
+initial(FOIv_species1[]) <- FOIv_eq*delayGam/lag_ratesMos
+initial(FOIv_species2[]) <- 0.01 * FOIv_eq*delayGam/lag_ratesMos
 
-update(FOIv[1]) <- FOIv[1] + dt*(lag_FOIv - (lag_ratesMos/delayGam)*FOIv[1])
-update(FOIv[2:lag_ratesMos]) <- FOIv[i] + dt*((lag_ratesMos/delayGam)*FOIv[i-1] - (lag_ratesMos/delayGam)*FOIv[i])
+update(FOIv_species1[1]) <- FOIv_species1[1] + dt*(lag_FOIv_species1 - (lag_ratesMos/delayGam)*FOIv_species1[1])
+update(FOIv_species1[2:lag_ratesMos]) <- FOIv_species1[i] + dt*((lag_ratesMos/delayGam)*FOIv_species1[i-1] - (lag_ratesMos/delayGam)*FOIv_species1[i])
+update(FOIv_species2[1]) <- FOIv_species2[1] + dt*(lag_FOIv_species2 - (lag_ratesMos/delayGam)*FOIv_species2[1])
+update(FOIv_species2[2:lag_ratesMos]) <- FOIv_species2[i] + dt*((lag_ratesMos/delayGam)*FOIv_species2[i-1] - (lag_ratesMos/delayGam)*FOIv_species2[i])
 
+dim(FOIvijk_species1) <- c(na,nh,num_int)
+dim(FOIvijk_species2) <- c(na,nh,num_int)
+omega <- parameter() # normalising constant for biting rates
+FOIvijk_species1[1:na, 1:nh, 1:num_int] <- ((cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k])/H) *
+  zeta[j] * av_mosq_species1[k]*psi[i]/omega ## For discrete human compartments
+lag_FOIv_species1=sum(FOIvijk_species1)
+FOIvijk_species2[1:na, 1:nh, 1:num_int] <- ((cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k])/H) *
+  zeta[j] * av_mosq_species2[k]*psi[i]/omega ## For discrete human compartments
+lag_FOIv_species2=sum(FOIvijk_species2)
 
-dim(FOIvijk) <- c(na,nh,num_int)
-omega <- parameter()
-FOIvijk[1:na, 1:nh, 1:num_int] <- ((cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k])/H) *
-  zeta[j] * av_mosq[k]*psi[i]/omega ## For discrete human compartments
-lag_FOIv=sum(FOIvijk)
-
-ince <- FOIv[lag_ratesMos] * lag_ratesMos/delayGam * Sv
-
-initial(ince_delay[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos
+ince_species1 <- FOIv_species1[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species1
+initial(ince_delay_species1[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
 dim(ince_delay) <- lag_ratesMos
+update(ince_delay_species1[1]) <- ince_delay_species1[1] + dt*(ince_species1 - (lag_ratesMos/delayMos_use)*ince_delay_species1[1])
+update(ince_delay_species1[2:lag_ratesMos]) <- ince_delay_species1[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay_species1[i-1] -
+                                                            (lag_ratesMos/delayMos_use)*ince_delay_species1[i])
+incv_species1 <- ince_delay_species1[lag_ratesMos]*lag_ratesMos/delayMos_use * surv_species1
 
-update(ince_delay[1]) <- ince_delay[1] + dt*(ince - (lag_ratesMos/delayMos_use)*ince_delay[1])
-update(ince_delay[2:lag_ratesMos]) <- ince_delay[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay[i-1] -
-                                                            (lag_ratesMos/delayMos_use)*ince_delay[i])
-
-incv <- ince_delay[lag_ratesMos]*lag_ratesMos/delayMos_use * surv
+ince_species2 <- FOIv_species2[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species2
+initial(ince_delay_species2[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
+dim(ince_delay) <- lag_ratesMos
+update(ince_delay_species2[1]) <- ince_delay_species2[1] + dt*(ince_species2 - (lag_ratesMos/delayMos_use)*ince_delay_species2[1])
+update(ince_delay_species2[2:lag_ratesMos]) <- ince_delay_species2[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay_species2[i-1] -
+                                                                              (lag_ratesMos/delayMos_use)*ince_delay_species2[i])
+incv_species2 <- ince_delay_species2[lag_ratesMos]*lag_ratesMos/delayMos_use * surv_species2
 
 # Current hum->mos FOI depends on the number of individuals now producing gametocytes (12 day lag)
 delayGam <- parameter()
 delayMos <- parameter()
 delayMos_use <- delayMos
+
 # Number of mosquitoes that become infected at each time point
-surv <- exp(-mu*delayMos_use)
+surv_species1 <- exp(-mu_species1*delayMos_use)
+surv_species2 <- exp(-mu_species2*delayMos_use)
 
 # Number of mosquitoes born (depends on PL, number of larvae), or is constant outside of seasonality
-betaa <- 0.5*PL/dPL
+betaa_species1 <- 0.5*PL_species1/dPL
+betaa_species2 <- 0.5*PL_species2/dPL
 
-update(Sv) <- if(Sv + dt*(-ince - mu*Sv + betaa) < 0) 0 else Sv + dt*(-ince - mu*Sv + betaa)
-update(Pv) <- if(Pv + dt*(ince - incv - mu*Pv) < 0) 0 else Pv + dt*(ince - incv - mu*Pv)
-update(Iv) <- if(Iv + dt*(incv - mu*Iv) < 0) 0 else Iv + dt*(incv - mu*Iv)
+update(Sv_species1) <- if(Sv_species1 + dt*(-ince_species1 - mu_species1*Sv_species1 + betaa_species1) < 0) 0 else 
+  Sv_species1 + dt*(-ince_species1 - mu_species1*Sv_species1 + betaa_species1)
+update(Pv_species1) <- if(Pv_species1 + dt*(ince_species1 - incv_species1 - mu_species1*Pv_species1) < 0) 0 else 
+  Pv_species1 + dt*(ince_species1 - incv_species1 - mu_species1*Pv_species1)
+update(Iv_species1) <- if(Iv_species1 + dt*(incv_species1 - mu_species1*Iv_species1) < 0) 0 else 
+  Iv_species1 + dt*(incv_species1 - mu_species1*Iv_species1)
+
+update(Sv_species2) <- if(Sv_species2 + dt*(-ince_species2 - mu_species2*Sv_species2 + betaa_species2) < 0) 0 else 
+  Sv_species2 + dt*(-ince_species2 - mu_species2*Sv_species2 + betaa_species2)
+update(Pv_species2) <- if(Pv_species2 + dt*(ince_species2 - incv_species2 - mu_species2*Pv_species2) < 0) 0 else 
+  Pv_species2 + dt*(ince_species2 - incv_species2 - mu_species2*Pv_species2)
+update(Iv_species2) <- if(Iv_species2 + dt*(incv_species2 - mu_species2*Iv_species2) < 0) 0 else 
+  Iv_species2 + dt*(incv_species2 - mu_species2*Iv_species2)
 
 # Total mosquito population
-initial(mv) <- 0
-update(mv) <- Sv+Pv+Iv
+initial(mv_species1) <- 0
+update(mv_species1) <- Sv_species1+Pv_species1+Iv_species1
+
+initial(mv_species2) <- 0
+update(mv_species2) <- Sv_species2+Pv_species2+Iv_species2
+
+mv <- mv_species1 + mv_species2
 
 human_pop <- parameter()
 initial(total_M) <- 0
 update(total_M) <- (mv * human_pop) / omega #Convert to same units as malariasimulation
 
-initial(Sm_count) <- 0
-update(Sm_count) <- (Sv * human_pop) / omega
-
-initial(Pm_count) <- 0
-update(Pm_count) <- (Pv * human_pop) / omega
-
-initial(Im_count) <- 0
-update(Im_count) <- (Iv * human_pop) / omega
+# initial(Sm_count) <- 0
+# update(Sm_count) <- (Sv * human_pop) / omega
+# 
+# initial(Pm_count) <- 0
+# update(Pm_count) <- (Pv * human_pop) / omega
+# 
+# initial(Im_count) <- 0
+# update(Im_count) <- (Iv * human_pop) / omega
 ##------------------------------------------------------------------------------
 ###################
 ## LARVAL STATES ##
@@ -699,7 +742,6 @@ dim(av_mosq_species2) <- num_int
 av_mosq_species2[1:num_int] <- av_species2 * w_species2[i] / wh_species2 # rate at which mosquitoes bite each int. cat.
 dim(av_human_species2) <- num_int
 av_human_species2[1:num_int] <- av_species2 * yy_species2[i] / wh_species2 # biting rate on humans in each int. cat.
-
 
 ##------------------------------------------------------------------------------
 ###################
