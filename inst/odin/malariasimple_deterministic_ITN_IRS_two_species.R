@@ -361,10 +361,10 @@ init_Sv <- parameter()
 init_Pv <- parameter()
 init_Iv <- parameter()
 initial(Sv_species1) <- init_Sv * mv0
-initial(Ev_species1) <- init_Ev * mv0
+initial(Pv_species1) <- init_Pv * mv0
 initial(Iv_species1) <- init_Iv * mv0
 initial(Sv_species2) <- init_Sv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
-initial(Ev_species2) <- init_Ev * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
+initial(Pv_species2) <- init_Pv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
 initial(Iv_species2) <- init_Iv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
@@ -381,8 +381,9 @@ lag_ratesMos <- parameter(type = "integer")
 
 FOIv_eq <- parameter()
 
-dim(FOIv) <- lag_ratesMos
-initial(FOIv[]) <- FOIv_eq*delayGam/lag_ratesMos
+dim(FOIv_species1) <- lag_ratesMos
+dim(FOIv_species2) <- lag_ratesMos
+
 initial(FOIv_species1[]) <- FOIv_eq*delayGam/lag_ratesMos
 initial(FOIv_species2[]) <- 0.01 * FOIv_eq*delayGam/lag_ratesMos
 
@@ -403,7 +404,7 @@ lag_FOIv_species2=sum(FOIvijk_species2)
 
 ince_species1 <- FOIv_species1[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species1
 initial(ince_delay_species1[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
-dim(ince_delay) <- lag_ratesMos
+dim(ince_delay_species1) <- lag_ratesMos
 update(ince_delay_species1[1]) <- ince_delay_species1[1] + dt*(ince_species1 - (lag_ratesMos/delayMos_use)*ince_delay_species1[1])
 update(ince_delay_species1[2:lag_ratesMos]) <- ince_delay_species1[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay_species1[i-1] -
                                                             (lag_ratesMos/delayMos_use)*ince_delay_species1[i])
@@ -411,7 +412,7 @@ incv_species1 <- ince_delay_species1[lag_ratesMos]*lag_ratesMos/delayMos_use * s
 
 ince_species2 <- FOIv_species2[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species2
 initial(ince_delay_species2[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
-dim(ince_delay) <- lag_ratesMos
+dim(ince_delay_species2) <- lag_ratesMos
 update(ince_delay_species2[1]) <- ince_delay_species2[1] + dt*(ince_species2 - (lag_ratesMos/delayMos_use)*ince_delay_species2[1])
 update(ince_delay_species2[2:lag_ratesMos]) <- ince_delay_species2[i] + dt*((lag_ratesMos/delayMos_use)*ince_delay_species2[i-1] -
                                                                               (lag_ratesMos/delayMos_use)*ince_delay_species2[i])
@@ -513,31 +514,31 @@ lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_spe
 ## in malariasimple:
 ## K0 <- 2*dLL*mv0*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 # parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
-density_vec_species1[] <- parameter()
+density_vec_species1 <- parameter()
 dim(density_vec_species1) <- n_days +1
-density_vec_species2[] <- parameter()
+density_vec_species2 <- parameter()
 dim(density_vec_species2) <- n_days +1
-K0_species1 <- if(as.integer(step) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
-  2*density_vec_species1[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
-K0_species2 <- if(as.integer(step) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
-  2*density_vec_species2[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+K0_species1 <- if(as.integer(time / dt) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
+  2*density_vec_species1[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+K0_species2 <- if(as.integer(time / dt) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
+  2*density_vec_species2[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 
 # Defining seasonal variation in carrying capacity (KL = base carrying capacity K0 * effect for time of year theta)
 theta_species1_input <- parameter()
 dim(theta_species1_input) <- n_days +1
-theta_species1 <- if(as.integer(step) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(step)]
+theta_species1 <- if(as.integer(time / dt) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(time / dt)]
 
-theta_species2_input[] <- parameter()
+theta_species2_input <- parameter()
 dim(theta_species2_input) <- n_days +1
-theta_species2 <- if(as.integer(step) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(step)]
+theta_species2 <- if(as.integer(time / dt) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(time / dt)]
 
 # Converting all that into time-varying carryin capacity
 KL_species1 <- K0_species1 * theta_species1
 KL_species2 <- K0_species2 * theta_species2
 blood_meal_rate_species1 <- 1/( foraging_time/(1-zbar_species1) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
 blood_meal_rate_species2 <- 1/( foraging_time/(1-zbar_species2) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
-mu_species1 <- -blood_meal_rate_species1*log(p1*p2) # mosquito death rate
-mu_species2 <- -blood_meal_rate_species2*log(p1*p2) # mosquito death rate
+mu_species1 <- -blood_meal_rate_species1*log(p1_species1*p2) # mosquito death rate
+mu_species2 <- -blood_meal_rate_species2*log(p1_species2*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- parameter()
@@ -678,7 +679,7 @@ w_species1_[4] <- w1_species1 * (1 - irs_eff_cov) * (1 - itn_eff_cov) +
   w2_species1 * (1 - irs_eff_cov) * itn_eff_cov +
   w3_species1 * irs_eff_cov * (1 - itn_eff_cov) +
   w4_species1 * irs_eff_cov * itn_eff_cov
-w_species1[] <- w_species1[i]
+w_species1[] <- w_species1_[i]
 dim(w_species1) <- num_int
 
 dim(w_species2_) <- 4
@@ -689,38 +690,38 @@ w_species2_[4] <- w1_species2 * (1 - irs_eff_cov) * (1 - itn_eff_cov) +
   w2_species2 * (1 - irs_eff_cov) * itn_eff_cov +
   w3_species2 * irs_eff_cov * (1 - itn_eff_cov) +
   w4_species2 * irs_eff_cov * itn_eff_cov
-w_species2[] <- w_species2[i]
+w_species2[] <- w_species2_[i]
 dim(w_species2) <- num_int
 
 # probability that mosq feeds during a single attempt for each int. cat.
-dim(yy_species1_) <- 4
-yy_species1_[1] <- 1
-yy_species1_[2] <- w_species1_[2]
-yy_species1_[3] <- 1 - (phi_indoors_species1 - phi_indoors_species1*(1-r_irs)) * irs_eff_cov
-#yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
-yy_species1_[4] <- 1 - (phi_indoors_species1 + phi_bednets_species1*(1-r_irs)*s_itn + (phi_indoors_species1 - phi_bednets_species1)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
-yy_species1[] <- yy_species1_[i]
-dim(yy_species1) <- num_int
-
-dim(yy_species2_) <- 4
-yy_species2_[1] <- 1
-yy_species2_[2] <- w_species2_[2]
-yy_species2_[3] <- 1 - (phi_indoors_species2 - phi_indoors_species2*(1-r_irs)) * irs_eff_cov
-#yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
-yy_species2_[4] <- 1 - (phi_indoors_species2 + phi_bednets_species2*(1-r_irs)*s_itn + (phi_indoors_species2 - phi_bednets_species2)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
-yy_species2[] <- yy_species2_[i]
-dim(yy_species2) <- num_int
+# dim(yy_species1_) <- 4
+# yy_species1_[1] <- 1
+# yy_species1_[2] <- w_species1_[2]
+# yy_species1_[3] <- 1 - (phi_indoors_species1 - phi_indoors_species1*(1-r_irs)) * irs_eff_cov
+# #yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
+# yy_species1_[4] <- 1 - (phi_indoors_species1 + phi_bed_species1*(1-r_irs)*s_itn + (phi_indoors_species1 - phi_bed_species1)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
+# yy_species1[] <- yy_species1_[i]
+# dim(yy_species1) <- num_int
+# 
+# dim(yy_species2_) <- 4
+# yy_species2_[1] <- 1
+# yy_species2_[2] <- w_species2_[2]
+# yy_species2_[3] <- 1 - (phi_indoors_species2 - phi_indoors_species2*(1-r_irs)) * irs_eff_cov
+# #yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
+# yy_species2_[4] <- 1 - (phi_indoors_species2 + phi_bed_species2*(1-r_irs)*s_itn + (phi_indoors_species2 - phi_bed_species2)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
+# yy_species2[] <- yy_species2_[i]
+# dim(yy_species2) <- num_int
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
 z1_species1 <- 0
-z2_species1 <- phi_bednets_species1 * r_itn
+z2_species1 <- phi_bed_species1 * r_itn
 z3_species1 <- phi_indoors_species1 * r_irs
-z4_species1 <- phi_bednets_species1 * (1 - r_irs) * r_itn + phi_indoors_species1 * r_irs
+z4_species1 <- phi_bed_species1 * (1 - r_irs) * r_itn + phi_indoors_species1 * r_irs
 
 z1_species2 <- 0
-z2_species2 <- phi_bednets_species2 * r_itn
+z2_species2 <- phi_bed_species2 * r_itn
 z3_species2 <- phi_indoors_species2 * r_irs
-z4_species2 <- phi_bednets_species2 * (1 - r_irs) * r_itn + phi_indoors_species2 * r_irs
+z4_species2 <- phi_bed_species2 * (1 - r_irs) * r_itn + phi_indoors_species2 * r_irs
 
 # modifying the z to account for waning of effectiveness in each intervention category
 dim(z_species1_) <- 4
@@ -778,13 +779,13 @@ av_species2 <- blood_meal_rate_species2 * Q_species2 # biting rate on humans
 
 dim(av_mosq_species1) <- num_int
 av_mosq_species1[1:num_int] <- av_species1 * w_species1[i] / wh_species1 # rate at which mosquitoes bite each int. cat.
-dim(av_human_species1) <- num_int
-av_human_species1[1:num_int] <- av_species1 * yy_species1[i] / wh_species1 # biting rate on humans in each int. cat.
+# dim(av_human_species1) <- num_int
+# av_human_species1[1:num_int] <- av_species1 * yy_species1[i] / wh_species1 # biting rate on humans in each int. cat.
 
 dim(av_mosq_species2) <- num_int
 av_mosq_species2[1:num_int] <- av_species2 * w_species2[i] / wh_species2 # rate at which mosquitoes bite each int. cat.
-dim(av_human_species2) <- num_int
-av_human_species2[1:num_int] <- av_species2 * yy_species2[i] / wh_species2 # biting rate on humans in each int. cat.
+# dim(av_human_species2) <- num_int
+# av_human_species2[1:num_int] <- av_species2 * yy_species2[i] / wh_species2 # biting rate on humans in each int. cat.
 
 ##------------------------------------------------------------------------------
 ###################
@@ -888,11 +889,11 @@ all_deaths[,,] <- S_death[i,j,k] + T_death[i,j,k] + D_death[i,j,k] + A_death[i,j
 initial(natural_deaths) <- 0
 update(natural_deaths) <- sum(all_deaths[,,])
 
-initial(mu_mosq) <- 0
-update(mu_mosq) <- mu
+# initial(mu_mosq) <- 0
+# update(mu_mosq) <- mu
 
-dim(all_eir) <- c(na,nh,num_int)
-all_eir[,,] <- (all[i,j,k] * EIR[i,j,k])
+# dim(all_eir) <- c(na,nh,num_int)
+# all_eir[,,] <- (all[i,j,k] * EIR[i,j,k])
 
 dim(epsilon_0) <- c(na,nh,num_int)
 epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / psi[i]
