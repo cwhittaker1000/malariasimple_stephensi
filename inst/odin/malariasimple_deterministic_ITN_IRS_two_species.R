@@ -514,23 +514,37 @@ lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_spe
 ## in malariasimple:
 ## K0 <- 2*dLL*mv0*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
 # parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
-density_vec_species1 <- parameter()
-dim(density_vec_species1) <- n_days +1
-density_vec_species2 <- parameter()
-dim(density_vec_species2) <- n_days +1
-K0_species1 <- if(as.integer(time / dt) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
-  2*density_vec_species1[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
-K0_species2 <- if(as.integer(time / dt) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
-  2*density_vec_species2[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+# density_vec_species1 <- parameter()
+# dim(density_vec_species1) <- n_days +1
+# density_vec_species2 <- parameter()
+# dim(density_vec_species2) <- n_days +1
+# K0_species1 <- if(as.integer(time / dt) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
+#   2*density_vec_species1[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+# K0_species2 <- if(as.integer(time / dt) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
+#   2*density_vec_species2[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+
+density_vec_species1_input <- parameter()
+density_vec_species1 <- interpolate(days, density_vec_species1_input, "linear")
+dim(density_vec_species1_input) <- n_days +1
+
+density_vec_species2_input <- parameter()
+density_vec_species2 <- interpolate(days, density_vec_species2_input, "linear")
+dim(density_vec_species2_input) <- n_days +1
+
+K0_species1 <- 2*density_vec_species1*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+K0_species2 <- 2*density_vec_species2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 
 # Defining seasonal variation in carrying capacity (KL = base carrying capacity K0 * effect for time of year theta)
+theta_species1 <- interpolate(days, theta_species1_input, "linear")
+theta_species2 <- interpolate(days, theta_species2_input, "linear")
+
 theta_species1_input <- parameter()
 dim(theta_species1_input) <- n_days +1
-theta_species1 <- if(as.integer(time / dt) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(time / dt)]
+# theta_species1 <- if(as.integer(time / dt) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(time / dt)]
 
 theta_species2_input <- parameter()
 dim(theta_species2_input) <- n_days +1
-theta_species2 <- if(as.integer(time / dt) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(time / dt)]
+# theta_species2 <- if(as.integer(time / dt) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(time / dt)]
 
 # Converting all that into time-varying carryin capacity
 KL_species1 <- K0_species1 * theta_species1
