@@ -1,8 +1,8 @@
 ## DECLARE TIME STEPS
 n_days <- parameter()
 
-dim(daily_rain_input) <- n_days +1
-daily_rain_input <- parameter()
+dim(theta_species1_input) <- n_days +1
+theta_species1_input <- parameter()
 
 dim(days) <- n_days + 1
 days <- parameter()
@@ -492,28 +492,47 @@ muPL <- parameter()
 gammaL <- parameter()
 
 # fitted entomological parameters:
-mv0 <- parameter()
-mum <- parameter()
+mv0 <- parameter() # initial mosquito density
+mum <- parameter() # baseline mosquito death rate
 foraging_time <- parameter()
 gonotrophic_cycle <- parameter()
 betaL <- parameter()
-
-# Entomological variables:
 mum_use <- mum
 p10 <- exp(-mum_use * foraging_time)  # probability of surviving one feeding cycle
 p2 <- exp(-mum_use * gonotrophic_cycle)  # probability of surviving one resting cycle
-eov <- betaL/mu*(exp(mu/blood_meal_rate)-1)
-beta_larval <- eov*mu*exp(-mu/blood_meal_rate)/(1-exp(-mu/blood_meal_rate)) # Number of eggs laid per day
+
+# Entomological variables:
+eov_species1 <- betaL / mu_species1 * (exp(mu_species1/blood_meal_rate_species1)-1)
+beta_larval_species1 <- eov_species1*mu_species1*exp(-mu_species1/blood_meal_rate_species1)/(1-exp(-mu_species1/blood_meal_rate_species1)) # Number of eggs laid per day
+eov_species2 <- betaL / mu_species2 * (exp(mu_species2/blood_meal_rate_species2)-1)
+beta_larval_species2 <- eov_species2*mu_species2*exp(-mu_species2/blood_meal_rate_species2)/(1-exp(-mu_species2/blood_meal_rate_species2)) # Number of eggs laid per day
+
 b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
-lambda <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
-K0 <- 2*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+lambda_species1 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_species1*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
+lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_species2*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
+
+## Previous versions had both mv0 and mu0, which were used in different places and not together in K0.
+## i.e. previously had for ICDMM:
+## K0 <- 2*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1) ## ie just using mu0
+## in malariasimple:
+## K0 <- 2*dLL*mv0*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
+K0_species1 <- if(as.integer(step) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
+  2*density_vec_species1[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+K0_species2 <- if(as.integer(step) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
+  2*density_vec_species2[as.integer(step)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 
 # Seasonal carrying capacity KL = base carrying capacity K0 * effect for time of year theta:
-rain_input <- interpolate(days, daily_rain_input, "linear")
+theta_species1 <- interpolate(days, theta_species1_input, "linear")
+theta_species2 <- _________ ## still need to define theta_species2 somewhere
 
-KL <- K0*rain_input
-blood_meal_rate <- 1/( foraging_time/(1-zbar) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
-mu <- -blood_meal_rate*log(p1*p2) # mosquito death rate
+
+# Converting all that into time-varying carryin capacity
+KL_species1 <- K0_species1 * theta_species1
+KL_species2 <- K0_species2 * theta_species2
+blood_meal_rate_species1 <- 1/( foraging_time/(1-zbar_species1) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
+blood_meal_rate_species2 <- 1/( foraging_time/(1-zbar_species2) + gonotrophic_cycle ) # mosquito feeding rate (zbar from intervention param.)
+mu_species1 <- -blood_meal_rate_species1*log(p1*p2) # mosquito death rate
+mu_species2 <- -blood_meal_rate_species2*log(p1*p2) # mosquito death rate
 
 # finding equilibrium and initial values for EL, LL & PL
 init_PL <- parameter()
