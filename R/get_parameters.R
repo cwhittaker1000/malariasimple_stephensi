@@ -56,10 +56,18 @@
 #' @param foraging_time Duration of host seeking, assumed to be constant between species
 #' @param gonotrophic_cycle Duration of mosquito resting after feed
 #' @param mum Daily mortality of adult mosquitoes
-#' @param Q0 Anthrophagy probability
-#' @param chi Endophily probability
-#' @param phi_bednets Percentage of bites indoors and in bed
-#' @param phi_indoors Percentage of bites indoors
+#' @param Q0_species1 Anthrophagy probability
+#' @param chi_species1 Endophily probability
+#' @param phi_bed_species1 Percentage of bites indoors and in bed
+#' @param phi_indoors_species1 Percentage of bites indoors
+#' @param Q0_species2 Anthrophagy probability
+#' @param chi_species2 Endophily probability
+#' @param phi_bed_species2 Percentage of bites indoors and in bed
+#' @param phi_indoors_species2 Percentage of bites indoors
+#' @param density_vec_species1_input Density vector over time for species 1 (basically dictates carrying capacity in absence of seasonal variation)
+#' @param density_vec_species2_input Density vector over time for species 2 (basically dictates carrying capacity in absence of seasonal variation)
+#' @param theta_species1_input Seasonal variation in carrying capacity for species 1
+#' @param theta_species2_input Seasonal variation in carrying capacity for species 2
 #' @param k0 Proportion of females bloodfed with no net
 #' @param muEL Per capita daily mortality rate of early stage larvae (low density)
 #' @param muLL Per capita daily mortality rate of late stage larvae (low density)
@@ -144,11 +152,19 @@ get_parameters <- function(
     foraging_time = 0.69,
     gonotrophic_cycle = 2.31,
     mum = 0.132,
-    Q0 = 0.92,
-    chi = 0.86,
-    phi_bednets = 0.85,
-    phi_indoors = 0.9,
+    Q0_species1 = 0.92,
+    chi_species1 = 0.86, # note this isn't used in this version (check why)
+    phi_bed_species1 = 0.85,
+    phi_indoors_species1 = 0.9,
+    Q0_species2 = 0.92,
+    chi_species2 = 0.86, # note this isn't used in this version (check why)
+    phi_bed_species2 = 0.85,
+    phi_indoors_species2 = 0.9,
     k0 = 0.699,
+    density_vec_species1_input = rep(1, 100 + 1),
+    density_vec_species2_input = rep(1, 100 + 1),
+    theta_species1_input = rep(1, 100 + 1),
+    theta_species2_input = rep(1, 100 + 1),
     # larval parameters daily density dependent mortality rate of egg
     muEL = 0.0338,
     muLL = 0.0348,
@@ -276,15 +292,22 @@ get_parameters <- function(
   params$foraging_time <- foraging_time
   params$gonotrophic_cycle <- gonotrophic_cycle
   params$mum <- mum
-  params$Q0 <- Q0
-  params$phi_bednets <- phi_bednets
-  params$phi_indoors <- phi_indoors
+  params$Q0_species1 <- Q0_species1
+  params$phi_bed_species1 <- phi_bed_species1
+  params$phi_indoors_species1 <- phi_indoors_species1
+  params$Q0_species2 <- Q0_species2
+  params$phi_bed_species2 <- phi_bed_species2
+  params$phi_indoors_species2 <- phi_indoors_species2
   params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
-  params$av0 <- Q0 * params$fv0 # daily feeeding rate on humans
+  params$av0 <- Q0 * params$fv0 # daily feeding rate on humans
   params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
   params$k0 <- k0
+  params$density_vec_species1_input <- density_vec_species1_input
+  params$density_vec_species2_input <- density_vec_species2_input
+  params$theta_species1_input <- theta_species1_input
+  params$theta_species2_input <- theta_species2_input
 
   # larval parameters
   params$muEL <- muEL
@@ -296,10 +319,10 @@ get_parameters <- function(
   params$gammaL <- gammaL
   params$betaL <- betaL
   # {White et al. 2011 Parasites and Vectors}
-  params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
-  params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
-  params$lambda <- -0.5 * params$b_lambda +
-    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
+  # params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
+  # params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
+  # params$lambda <- -0.5 * params$b_lambda +
+  #   sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
 
 
   #Additional parameters for dust model

@@ -57,11 +57,19 @@ get_parameters(
   foraging_time = 0.69,
   gonotrophic_cycle = 2.31,
   mum = 0.132,
-  Q0 = 0.92,
-  chi = 0.86,
-  phi_bednets = 0.85,
-  phi_indoors = 0.9,
+  Q0_species1 = 0.92,
+  chi_species1 = 0.86,
+  phi_bed_species1 = 0.85,
+  phi_indoors_species1 = 0.9,
+  Q0_species2 = 0.92,
+  chi_species2 = 0.86,
+  phi_bed_species2 = 0.85,
+  phi_indoors_species2 = 0.9,
   k0 = 0.699,
+  density_vec_species1_input = rep(1, 100 + 1),
+  density_vec_species2_input = rep(1, 100 + 1),
+  theta_species1_input = rep(1, 100 + 1),
+  theta_species2_input = rep(1, 100 + 1),
   muEL = 0.0338,
   muLL = 0.0348,
   muPL = 0.249,
@@ -181,15 +189,31 @@ get_parameters(
 
 \item{mum}{Daily mortality of adult mosquitoes}
 
-\item{Q0}{Anthrophagy probability}
+\item{Q0_species1}{Anthrophagy probability}
 
-\item{chi}{Endophily probability}
+\item{chi_species1}{Endophily probability}
 
-\item{phi_bednets}{Percentage of bites indoors and in bed}
+\item{phi_bed_species1}{Percentage of bites indoors and in bed}
 
-\item{phi_indoors}{Percentage of bites indoors}
+\item{phi_indoors_species1}{Percentage of bites indoors}
+
+\item{Q0_species2}{Anthrophagy probability}
+
+\item{chi_species2}{Endophily probability}
+
+\item{phi_bed_species2}{Percentage of bites indoors and in bed}
+
+\item{phi_indoors_species2}{Percentage of bites indoors}
 
 \item{k0}{Proportion of females bloodfed with no net}
+
+\item{density_vec_species1_input}{Density vector over time for species 1 (basically dictates carrying capacity in absence of seasonal variation)}
+
+\item{density_vec_species2_input}{Density vector over time for species 2 (basically dictates carrying capacity in absence of seasonal variation)}
+
+\item{theta_species1_input}{Seasonal variation in carrying capacity for species 1}
+
+\item{theta_species2_input}{Seasonal variation in carrying capacity for species 2}
 
 \item{muEL}{Per capita daily mortality rate of early stage larvae (low density)}
 
