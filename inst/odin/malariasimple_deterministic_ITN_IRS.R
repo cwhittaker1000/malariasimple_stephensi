@@ -588,14 +588,14 @@ w[] <- w_[i]
 dim(w) <- num_int
 
 # probability that mosq feeds during a single attempt for each int. cat.
-dim(yy_) <- 4
-yy_[1] <- 1
-yy_[2] <- w_[2]
-yy_[3] <- 1 - (phi_indoors - phi_indoors*(1-r_irs)) * irs_eff_cov
-#yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
-yy_[4] <- 1 - (phi_indoors + phi_bednets*(1-r_irs)*s_itn + (phi_indoors - phi_bednets)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
-yy[] <- yy_[i]
-dim(yy) <- num_int
+# dim(yy_) <- 4
+# yy_[1] <- 1
+# yy_[2] <- w_[2]
+# yy_[3] <- 1 - (phi_indoors - phi_indoors*(1-r_irs)) * irs_eff_cov
+# #yy_[3] <- 1 - (phi_indoors + phi_indoors*(1-r_irs_eff))
+# yy_[4] <- 1 - (phi_indoors + phi_bednets*(1-r_irs)*s_itn + (phi_indoors - phi_bednets)*(1-r_irs)) * itn_eff_cov * irs_eff_cov
+# yy[] <- yy_[i]
+# dim(yy) <- num_int
 
 # probability that mosquito is repelled during a single attempt for each int. cat.
 z1 <- 0
@@ -631,8 +631,8 @@ Q <- 1-(1-Q0)/wbar # updated anthropophagy given interventions
 av <- blood_meal_rate*Q # biting rate on humans
 dim(av_mosq) <- num_int
 av_mosq[1:num_int] <- av*w[i]/wh # rate at which mosquitoes bite each int. cat.
-dim(av_human) <- num_int
-av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
+# dim(av_human) <- num_int
+# av_human[1:num_int] <- av*yy[i]/wh # biting rate on humans in each int. cat.
 
 
 ##------------------------------------------------------------------------------
@@ -740,8 +740,8 @@ update(natural_deaths) <- sum(all_deaths[,,])
 initial(mu_mosq) <- 0
 update(mu_mosq) <- mu
 
-dim(all_eir) <- c(na,nh,num_int)
-all_eir[,,] <- (all[i,j,k] * EIR[i,j,k])
+# dim(all_eir) <- c(na,nh,num_int)
+# all_eir[,,] <- (all[i,j,k] * EIR[i,j,k])
 
 dim(epsilon_0) <- c(na,nh,num_int)
 epsilon_0[,,] <- (all[i,j,k] * EIR[i,j,k]) / psi[i]
