@@ -299,7 +299,7 @@ get_parameters <- function(
   params$phi_bed_species2 <- phi_bed_species2
   params$phi_indoors_species2 <- phi_indoors_species2
   params$fv0 <- 1 / (foraging_time + gonotrophic_cycle)
-  params$av0 <- Q0 * params$fv0 # daily feeding rate on humans
+  params$av0 <- Q0_species1 * params$fv0 # daily feeding rate on humans
   params$Surv0 <- exp(-mum * delayMos) # probability of surviving incubation period
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
@@ -319,10 +319,10 @@ get_parameters <- function(
   params$gammaL <- gammaL
   params$betaL <- betaL
   # {White et al. 2011 Parasites and Vectors}
-  # params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
-  # params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
-  # params$lambda <- -0.5 * params$b_lambda +
-  #   sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
+  params$eov <- betaL/mum * (exp(mum/params$fv0) - 1)
+  params$b_lambda <- (gammaL * muLL/muEL - dEL/dLL + (gammaL - 1) * muLL * dEL)
+  params$lambda <- -0.5 * params$b_lambda +
+    sqrt(0.25 * params$b_lambda^2 + gammaL * betaL * muLL * dEL/(2 * muEL * mum * dLL * (1 + dPL * muPL)))
 
 
   #Additional parameters for dust model
