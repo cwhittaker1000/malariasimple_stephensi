@@ -9,7 +9,7 @@
 #' @export
 
 run_simulation <- function(params, full_output = FALSE){
-  gen <- malariasimple_deterministic_ITN_IRS
+  gen <- malariasimple_deterministic_ITN_IRS_two_species
 
   sys <- dust2::dust_system_create(gen(), params, n_particles = 1, dt = 1/params$tsd)
 
