@@ -302,7 +302,7 @@ get_parameters <- function(
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
   params$k0 <- k0
-  params$density_vec_species1_input <- density_vec_species1_input
+  # params$density_vec_species1_input <- density_vec_species1_input
   params$density_vec_species2_input <- density_vec_species2_input
   params$theta_species1_input <- theta_species1_input
   params$theta_species2_input <- theta_species2_input

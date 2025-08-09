@@ -66,10 +66,9 @@ get_parameters(
   phi_bed_species2 = 0.85,
   phi_indoors_species2 = 0.9,
   k0 = 0.699,
-  density_vec_species1_input = rep(1, 100 + 1),
-  density_vec_species2_input = rep(1, 100 + 1),
-  theta_species1_input = rep(1, 100 + 1),
-  theta_species2_input = rep(1, 100 + 1),
+  density_vec_species2_input = rep(1, n_days + 1),
+  theta_species1_input = rep(1, n_days + 1),
+  theta_species2_input = rep(1, n_days + 1),
   muEL = 0.0338,
   muLL = 0.0348,
   muPL = 0.249,
@@ -206,8 +205,6 @@ get_parameters(
 \item{phi_indoors_species2}{Percentage of bites indoors}
 
 \item{k0}{Proportion of females bloodfed with no net}
-
-\item{density_vec_species1_input}{Density vector over time for species 1 (basically dictates carrying capacity in absence of seasonal variation)}
 
 \item{density_vec_species2_input}{Density vector over time for species 2 (basically dictates carrying capacity in absence of seasonal variation)}
 
