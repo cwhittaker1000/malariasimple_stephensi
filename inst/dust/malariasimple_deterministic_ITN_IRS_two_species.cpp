@@ -82,7 +82,6 @@
 // [[dust2::parameter(foraging_time, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(gonotrophic_cycle, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(betaL, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(density_vec_species1_input, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(density_vec_species2_input, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(theta_species1_input, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(theta_species2_input, type = "real_type", rank = 1, required = TRUE, constant = FALSE)]]
@@ -206,7 +205,6 @@ public:
       dust2::array::dimensions<3> FOIvijk_species2;
       dust2::array::dimensions<1> ince_delay_species1;
       dust2::array::dimensions<1> ince_delay_species2;
-      dust2::array::dimensions<1> density_vec_species1_input;
       dust2::array::dimensions<1> density_vec_species2_input;
       dust2::array::dimensions<1> theta_species1_input;
       dust2::array::dimensions<1> theta_species2_input;
@@ -356,7 +354,6 @@ public:
     std::vector<real_type> age_vector;
     real_type p10;
     real_type p2;
-    std::vector<real_type> density_vec_species1_input;
     std::vector<real_type> density_vec_species2_input;
     std::vector<real_type> theta_species1_input;
     std::vector<real_type> theta_species2_input;
@@ -372,7 +369,6 @@ public:
     std::vector<int> min_age_inc;
     std::vector<int> max_age_inc;
     std::vector<real_type> fd;
-    dust2::interpolate::InterpolateLinear<real_type> interpolate_density_vec_species1;
     dust2::interpolate::InterpolateLinear<real_type> interpolate_density_vec_species2;
     dust2::interpolate::InterpolateLinear<real_type> interpolate_theta_species1;
     dust2::interpolate::InterpolateLinear<real_type> interpolate_theta_species2;
@@ -633,7 +629,6 @@ public:
     const real_type delayMos_use = delayMos;
     const real_type mum_use = mum;
     const real_type b_lambda = (gammaL * muLL / muEL - dEL / dLL + (gammaL - 1) * muLL * dEL);
-    dim.density_vec_species1_input.set({static_cast<size_t>(n_days + 1)});
     dim.density_vec_species2_input.set({static_cast<size_t>(n_days + 1)});
     dim.theta_species1_input.set({static_cast<size_t>(n_days + 1)});
     dim.theta_species2_input.set({static_cast<size_t>(n_days + 1)});
@@ -716,8 +711,6 @@ public:
     dust2::r::read_real_array(parameters, dim.age_vector, age_vector.data(), "age_vector", true);
     const real_type p10 = monty::math::exp(-mum_use * foraging_time);
     const real_type p2 = monty::math::exp(-mum_use * gonotrophic_cycle);
-    std::vector<real_type> density_vec_species1_input(dim.density_vec_species1_input.size);
-    dust2::r::read_real_array(parameters, dim.density_vec_species1_input, density_vec_species1_input.data(), "density_vec_species1_input", true);
     std::vector<real_type> density_vec_species2_input(dim.density_vec_species2_input.size);
     dust2::r::read_real_array(parameters, dim.density_vec_species2_input, density_vec_species2_input.data(), "density_vec_species2_input", true);
     std::vector<real_type> theta_species1_input(dim.theta_species1_input.size);
@@ -752,7 +745,6 @@ public:
     for (size_t i = 1; i <= static_cast<size_t>(na); ++i) {
       fd[i - 1] = 1 - (1 - fD0) / (1 + monty::math::pow((age_vector[i - 1] / aD), gammaD));
     }
-    const auto interpolate_density_vec_species1 = dust2::interpolate::InterpolateLinear(days, density_vec_species1_input, "days", "density_vec_species1_input");
     const auto interpolate_density_vec_species2 = dust2::interpolate::InterpolateLinear(days, density_vec_species2_input, "days", "density_vec_species2_input");
     const auto interpolate_theta_species1 = dust2::interpolate::InterpolateLinear(days, theta_species1_input, "days", "theta_species1_input");
     const auto interpolate_theta_species2 = dust2::interpolate::InterpolateLinear(days, theta_species2_input, "days", "theta_species2_input");
@@ -812,7 +804,7 @@ public:
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, human_pop, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_irs_cov, max_itn_cov, num_int, Q0_species1, phi_bed_species1, phi_indoors_species1, Q0_species2, phi_bed_species2, phi_indoors_species2, w1_species1, w1_species2, z1_species1, z1_species2, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, cov_, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, density_vec_species1_input, density_vec_species2_input, theta_species1_input, theta_species2_input, rs, ss, irs_eff_cov_daily, r_itn_daily, s_itn_daily, itn_eff_cov_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_density_vec_species1, interpolate_density_vec_species2, interpolate_theta_species1, interpolate_theta_species2, interpolate_r_irs, interpolate_s_irs, interpolate_irs_eff_cov, interpolate_r_itn, interpolate_s_itn, interpolate_itn_eff_cov};
+    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, human_pop, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_irs_cov, max_itn_cov, num_int, Q0_species1, phi_bed_species1, phi_indoors_species1, Q0_species2, phi_bed_species2, phi_indoors_species2, w1_species1, w1_species2, z1_species1, z1_species2, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, cov_, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, density_vec_species2_input, theta_species1_input, theta_species2_input, rs, ss, irs_eff_cov_daily, r_itn_daily, s_itn_daily, itn_eff_cov_daily, cov, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_density_vec_species2, interpolate_theta_species1, interpolate_theta_species2, interpolate_r_irs, interpolate_s_irs, interpolate_irs_eff_cov, interpolate_r_itn, interpolate_s_itn, interpolate_itn_eff_cov};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> S_death(shared.dim.S_death.size);
@@ -986,7 +978,6 @@ public:
     dust2::r::read_real_array(parameters, shared.dim.age_vector, shared.age_vector.data(), "age_vector", false);
     shared.p10 = monty::math::exp(-shared.mum_use * shared.foraging_time);
     shared.p2 = monty::math::exp(-shared.mum_use * shared.gonotrophic_cycle);
-    dust2::r::read_real_array(parameters, shared.dim.density_vec_species1_input, shared.density_vec_species1_input.data(), "density_vec_species1_input", false);
     dust2::r::read_real_array(parameters, shared.dim.density_vec_species2_input, shared.density_vec_species2_input.data(), "density_vec_species2_input", false);
     dust2::r::read_real_array(parameters, shared.dim.theta_species1_input, shared.theta_species1_input.data(), "theta_species1_input", false);
     dust2::r::read_real_array(parameters, shared.dim.theta_species2_input, shared.theta_species2_input.data(), "theta_species2_input", false);
@@ -1006,7 +997,6 @@ public:
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
       shared.fd[i - 1] = 1 - (1 - shared.fD0) / (1 + monty::math::pow((shared.age_vector[i - 1] / shared.aD), shared.gammaD));
     }
-    const auto interpolate_density_vec_species1 = dust2::interpolate::InterpolateLinear(shared.days, shared.density_vec_species1_input, "days", "density_vec_species1_input");
     const auto interpolate_density_vec_species2 = dust2::interpolate::InterpolateLinear(shared.days, shared.density_vec_species2_input, "days", "density_vec_species2_input");
     const auto interpolate_theta_species1 = dust2::interpolate::InterpolateLinear(shared.days, shared.theta_species1_input, "days", "theta_species1_input");
     const auto interpolate_theta_species2 = dust2::interpolate::InterpolateLinear(shared.days, shared.theta_species2_input, "days", "theta_species2_input");
@@ -1463,7 +1453,6 @@ public:
         }
       }
     }
-    const real_type density_vec_species1 = shared.interpolate_density_vec_species1.eval(time);
     const real_type density_vec_species2 = shared.interpolate_density_vec_species2.eval(time);
     const real_type theta_species1 = shared.interpolate_theta_species1.eval(time);
     const real_type theta_species2 = shared.interpolate_theta_species2.eval(time);
@@ -1683,8 +1672,8 @@ public:
         }
       }
     }
-    const real_type K0_species1 = 2 * density_vec_species1 * shared.mv0 * shared.dLL * shared.mum_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda_species1 + 1) / (lambda_species1 / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
-    const real_type K0_species2 = 2 * density_vec_species2 * shared.mv0 * shared.dLL * shared.mum_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda_species2 + 1) / (lambda_species2 / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
+    const real_type K0_species1 = 2 * shared.mv0 * shared.dLL * shared.mum_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda_species1 + 1) / (lambda_species1 / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
+    const real_type K0_species2 = 2 * density_vec_species2 * shared.dLL * shared.mum_use * (1 + shared.dPL * shared.muPL) * shared.gammaL * (lambda_species2 + 1) / (lambda_species2 / (shared.muLL * shared.dEL) - 1 / (shared.muLL * shared.dLL) - 1);
     for (size_t i = 1; i <= shared.dim.epsilon_0.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.epsilon_0.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.epsilon_0.dim[2]; ++k) {
