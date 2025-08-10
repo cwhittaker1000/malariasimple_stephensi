@@ -420,7 +420,7 @@ age_rendering <- function(params,
     if(default_population_rendering_max_ages %in% age_vector){
       population_rendering_max_ages <- default_population_rendering_max_ages
     } else {
-      population_rendering_max_ages <- 0
+      population_rendering_max_ages <- Inf
     }
   }
 
