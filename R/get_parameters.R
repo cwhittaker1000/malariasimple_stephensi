@@ -377,8 +377,8 @@ age_rendering <- function(params,
   #Set default values
   default_clin_inc_rendering_min_ages <- 0*365
   default_clin_inc_rendering_max_ages <- Inf
-  default_prevalence_rendering_min_ages <- 2*365
-  default_prevalence_rendering_max_ages <- 10*365
+  default_prevalence_rendering_min_ages <- 0*365
+  default_prevalence_rendering_max_ages <- Inf
 
   age_vector <- params$age_vector
 

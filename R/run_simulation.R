@@ -30,11 +30,10 @@ run_simulation <- function(params, full_output = FALSE){
 
   #Only output select variables (unless requested otherwise)
   if(!full_output){
-    selected_cols <- c("time","EIR_mean","natural_deaths","mu_mosq",
-                       grep("_count$", colnames(out), value = TRUE),
-                       "ica_mean","icm_mean","ib_mean", "id_mean",
-                       grep("^n_", colnames(out), value = TRUE),
-                       "EL","LL","PL","total_M")
+    selected_cols <- c("time","mv_species1", "mv_species2",
+                       grep("n_clin_inc*", colnames(out), value = TRUE),
+                       # grep("_count$", colnames(out), value = TRUE),
+                       grep("^n_0", colnames(out), value = TRUE))
   out <- out[,selected_cols]
 
   }
@@ -55,7 +54,7 @@ get_output_colnames <- function(sys, params){
   }
 
   #Improve naming of user-defined outputs
-  index[index == "n_ud_prev"] <- paste("n",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_age,sep="_")
+  index[index == "n_ud_prev"] <- paste("n",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
   index[index == "n_ud_detect_prev"] <- paste("n_detect",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_")
   index[index == "n_ud_inc"] <- paste("n_clin_inc",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
   return(index)
