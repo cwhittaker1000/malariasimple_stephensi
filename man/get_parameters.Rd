@@ -83,6 +83,8 @@ get_parameters(
   clin_inc_rendering_max_ages = NULL,
   prevalence_rendering_min_ages = NULL,
   prevalence_rendering_max_ages = NULL,
+  population_rendering_min_ages = NULL,
+  population_rendering_max_ages = NULL,
   ...
 )
 }

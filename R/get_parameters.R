@@ -180,6 +180,8 @@ get_parameters <- function(
     clin_inc_rendering_max_ages = NULL,
     prevalence_rendering_min_ages = NULL, #Default = 2*365
     prevalence_rendering_max_ages = NULL, #Default = 10*365
+    population_rendering_min_ages = NULL, #Default = 2*365
+    population_rendering_max_ages = NULL, #Default = 10*365
     ...
 
 ){
@@ -332,6 +334,7 @@ get_parameters <- function(
 
   #Set age rendering parameters for prevalence and clinical incidence estimates
   params <- age_rendering(params,
+                          population_rendering_max_ages, population_rendering_min_ages,
                           prevalence_rendering_max_ages,prevalence_rendering_min_ages,
                           clin_inc_rendering_max_ages,clin_inc_rendering_min_ages)
 
@@ -372,11 +375,15 @@ max_age_to_index <- function(max_age,age_vector){
 }
 
 age_rendering <- function(params,
+                          population_rendering_max_ages,
+                          population_rendering_min_ages,
                           prevalence_rendering_max_ages,
                           prevalence_rendering_min_ages,
                           clin_inc_rendering_max_ages,
                           clin_inc_rendering_min_ages){
   #Set default values
+  default_population_rendering_min_ages <- 0*365
+  default_population_rendering_max_ages <- Inf
   default_clin_inc_rendering_min_ages <- 0*365
   default_clin_inc_rendering_max_ages <- Inf
   default_prevalence_rendering_min_ages <- 0*365
@@ -385,6 +392,14 @@ age_rendering <- function(params,
   age_vector <- params$age_vector
 
   #If NULL, try to apply default values. Else cover all age ranges
+  if(is.null(population_rendering_min_ages)){
+    if(default_population_rendering_min_ages %in% age_vector){
+      population_rendering_min_ages <- default_population_rendering_min_ages
+    } else {
+      population_rendering_min_ages <- 0
+    }
+  }
+  
   if(is.null(clin_inc_rendering_min_ages)){
     if(default_clin_inc_rendering_min_ages %in% age_vector){
       clin_inc_rendering_min_ages <- default_clin_inc_rendering_min_ages
@@ -398,6 +413,14 @@ age_rendering <- function(params,
       prevalence_rendering_min_ages <- default_prevalence_rendering_min_ages
     } else {
       prevalence_rendering_min_ages <- 0
+    }
+  }
+  
+  if(is.null(population_rendering_max_ages)){
+    if(default_population_rendering_max_ages %in% age_vector){
+      population_rendering_max_ages <- default_population_rendering_max_ages
+    } else {
+      population_rendering_max_ages <- 0
     }
   }
 
@@ -418,6 +441,9 @@ age_rendering <- function(params,
   }
 
   ## Check rendering ages are valid.
+  if(length(population_rendering_max_ages) != length(population_rendering_min_ages)){
+    stop(message("population rendering min age and max age must be equal length"))
+  }
   if(length(prevalence_rendering_max_ages) != length(prevalence_rendering_min_ages)){
     stop(message("prevalence rendering min age and max age must be equal length"))
     }
@@ -432,20 +458,28 @@ age_rendering <- function(params,
     stop(message("clin_inc_rendering_min_ages must correspond to boundaries specified in age_vector. \n
                  See params$age_vector for default values"))
   }
+  if(sum(!population_rendering_min_ages %in% age_vector) != 0){
+    stop(message("population_min_ages must correspond to boundaries specified in age_vector. \n
+                 See params$age_vector for default values"))
+  }
 
   # Convert minimum ages (in days) to index of age vector
+  params$min_age_n <- match(population_rendering_min_ages, age_vector) |> as.integer()
   params$min_age_prev <- match(prevalence_rendering_min_ages, age_vector) |> as.integer()
   params$min_age_inc <- match(clin_inc_rendering_min_ages,age_vector) |> as.integer()
 
   # Convert maximum ages (in days) in index of age vector. Age vector describes lower age bracket, hence maximum ages takes preceding index
+  params$max_age_n <-  sapply(population_rendering_max_ages, function(x) max_age_to_index(x,age_vector)) |> as.integer()
   params$max_age_prev <- sapply(prevalence_rendering_max_ages, function(x) max_age_to_index(x,age_vector)) |> as.integer()
   params$max_age_inc <- sapply(clin_inc_rendering_max_ages, function(x) max_age_to_index(x,age_vector)) |> as.integer()
 
   # Prepare inputs for odin.dust model
+  params$n_dim <- length(population_rendering_max_ages)
   params$prev_dim <- length(prevalence_rendering_max_ages)
   params$inc_dim <- length(clin_inc_rendering_max_ages)
 
   # Prepare inputs for post processing
+  params$population_rendering_max_ages <- population_rendering_max_ages
   params$prevalence_rendering_max_ages <- prevalence_rendering_max_ages
   params$clin_inc_rendering_max_ages <- clin_inc_rendering_max_ages
 

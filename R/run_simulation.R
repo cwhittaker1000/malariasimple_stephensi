@@ -55,9 +55,9 @@ get_output_colnames <- function(sys, params){
   }
 
   #Improve naming of user-defined outputs
-  index[index == "n_ud_prev"] <- paste("n",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
-  index[index == "n_ud_any_prev"] <- paste("n_any",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
-  index[index == "n_ud_detect_prev"] <- paste("n_detect",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_")
-  index[index == "n_ud_inc"] <- paste("n_clin_inc",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")
+  index[index == "n_ud_prev"] <- paste("n",params$age_vector[params$min_age_n], params$population_rendering_max_ages,sep="_")         ## this is population size
+  index[index == "n_ud_any_prev"] <- paste("n_any",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is any malaria
+  index[index == "n_ud_detect_prev"] <- paste("n_detect",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is detectable malaria
+  index[index == "n_ud_inc"] <- paste("n_clin_inc",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")          ## this is clinical incidence
   return(index)
 }

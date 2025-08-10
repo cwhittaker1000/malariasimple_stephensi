@@ -815,12 +815,18 @@ dim(max_age_prev) <- prev_dim
 min_age_prev <- parameter(type = "integer")
 max_age_prev <- parameter(type = "integer")
 
-##Proportion of population in user defined prevalence age groups
-dim(n_prev) <- prev_dim
-dim(n_ud_prev) <- prev_dim
-initial(n_ud_prev[]) <- min_age_prev[i] #user defined prevalence
-n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_prev[i]:max_age_prev[i],,]) + sum(D[min_age_prev[i]:max_age_prev[i],,]) +
-  sum(A[min_age_prev[i]:max_age_prev[i],,]) + sum(U[min_age_prev[i]:max_age_prev[i],,]) + sum(P[min_age_prev[i]:max_age_prev[i],,])
+n_dim <- parameter()
+dim(min_age_n) <- n_dim
+dim(max_age_n) <- n_dim
+min_age_n <- parameter(type = "integer")
+max_age_n <- parameter(type = "integer")
+
+##Proportion of population in user defined prevalence age groups (i.e. number of individuals)
+dim(n_prev) <- n_dim
+dim(n_ud_prev) <- n_dim
+initial(n_ud_prev[]) <- min_age_n[i] #user defined prevalence
+n_prev[1:n_dim] <- sum(S[min_age_n[i]:max_age_n[i],,]) + sum(T[min_age_n[i]:max_age_n[i],,]) + sum(D[min_age_n[i]:max_age_n[i],,]) +
+  sum(A[min_age_n[i]:max_age_n[i],,]) + sum(U[min_age_n[i]:max_age_n[i],,]) + sum(P[min_age_n[i]:max_age_n[i],,])
 update(n_ud_prev[]) <- n_prev[i]
 
 ##Proportion of population in user defined prevalence age groups with any malaria
