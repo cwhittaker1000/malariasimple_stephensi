@@ -121,7 +121,7 @@ public:
         dust2::packing state;
       } packing;
       struct {
-        std::array<size_t, 46> state;
+        std::array<size_t, 47> state;
       } offset;
     } odin;
     struct dim_type {
@@ -232,16 +232,19 @@ public:
       dust2::array::dimensions<1> whi_species2;
       dust2::array::dimensions<1> av_mosq_species1;
       dust2::array::dimensions<1> av_mosq_species2;
-      dust2::array::dimensions<3> clin_inc;
       dust2::array::dimensions<1> min_age_prev;
       dust2::array::dimensions<1> max_age_prev;
       dust2::array::dimensions<1> n_prev;
-      dust2::array::dimensions<3> detect_prev_full;
-      dust2::array::dimensions<1> detect_prev;
       dust2::array::dimensions<1> n_ud_prev;
+      dust2::array::dimensions<1> any_prev;
+      dust2::array::dimensions<3> any_prev_full;
+      dust2::array::dimensions<1> n_ud_any_prev;
+      dust2::array::dimensions<1> detect_prev;
+      dust2::array::dimensions<3> detect_prev_full;
       dust2::array::dimensions<1> n_ud_detect_prev;
       dust2::array::dimensions<1> min_age_inc;
       dust2::array::dimensions<1> max_age_inc;
+      dust2::array::dimensions<3> clin_inc;
       dust2::array::dimensions<1> n_ud_inc;
       dust2::array::dimensions<3> all;
       dust2::array::dimensions<3> icm_pop;
@@ -399,6 +402,7 @@ public:
     std::vector<real_type> init_ICM_pre;
     std::vector<real_type> IC;
     std::vector<real_type> b;
+    std::vector<real_type> any_prev_full;
     std::vector<real_type> all;
     std::vector<real_type> births;
     std::vector<real_type> S_age;
@@ -409,6 +413,7 @@ public:
     std::vector<real_type> P_age;
     std::vector<real_type> phi;
     std::vector<real_type> n_prev;
+    std::vector<real_type> any_prev;
     std::vector<real_type> icm_pop;
     std::vector<real_type> ica_pop;
     std::vector<real_type> id_pop;
@@ -438,8 +443,8 @@ public:
     std::vector<real_type> w_species2_;
     std::vector<real_type> z_species1_;
     std::vector<real_type> z_species2_;
-    std::vector<real_type> clin_inc;
     std::vector<real_type> detect_prev;
+    std::vector<real_type> clin_inc;
     std::vector<real_type> w_species1;
     std::vector<real_type> w_species2;
     std::vector<real_type> z_species1;
@@ -659,16 +664,19 @@ public:
     dim.whi_species2.set({static_cast<size_t>(num_int)});
     dim.av_mosq_species1.set({static_cast<size_t>(num_int)});
     dim.av_mosq_species2.set({static_cast<size_t>(num_int)});
-    dim.clin_inc.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.min_age_prev.set({static_cast<size_t>(prev_dim)});
     dim.max_age_prev.set({static_cast<size_t>(prev_dim)});
     dim.n_prev.set({static_cast<size_t>(prev_dim)});
-    dim.detect_prev_full.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
-    dim.detect_prev.set({static_cast<size_t>(prev_dim)});
     dim.n_ud_prev.set({static_cast<size_t>(prev_dim)});
+    dim.any_prev.set({static_cast<size_t>(prev_dim)});
+    dim.any_prev_full.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
+    dim.n_ud_any_prev.set({static_cast<size_t>(prev_dim)});
+    dim.detect_prev.set({static_cast<size_t>(prev_dim)});
+    dim.detect_prev_full.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.n_ud_detect_prev.set({static_cast<size_t>(prev_dim)});
     dim.min_age_inc.set({static_cast<size_t>(inc_dim)});
     dim.max_age_inc.set({static_cast<size_t>(inc_dim)});
+    dim.clin_inc.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.n_ud_inc.set({static_cast<size_t>(inc_dim)});
     dim.all.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.icm_pop.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
@@ -808,6 +816,7 @@ public:
       {"ince_delay_species1", std::vector<size_t>(dim.ince_delay_species1.dim.begin(), dim.ince_delay_species1.dim.end())},
       {"ince_delay_species2", std::vector<size_t>(dim.ince_delay_species2.dim.begin(), dim.ince_delay_species2.dim.end())},
       {"n_ud_prev", std::vector<size_t>(dim.n_ud_prev.dim.begin(), dim.n_ud_prev.dim.end())},
+      {"n_ud_any_prev", std::vector<size_t>(dim.n_ud_any_prev.dim.begin(), dim.n_ud_any_prev.dim.end())},
       {"n_ud_detect_prev", std::vector<size_t>(dim.n_ud_detect_prev.dim.begin(), dim.n_ud_detect_prev.dim.end())},
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
@@ -830,6 +839,7 @@ public:
     std::vector<real_type> init_ICM_pre(shared.dim.init_ICM_pre.size);
     std::vector<real_type> IC(shared.dim.IC.size);
     std::vector<real_type> b(shared.dim.b.size);
+    std::vector<real_type> any_prev_full(shared.dim.any_prev_full.size);
     std::vector<real_type> all(shared.dim.all.size);
     std::vector<real_type> births(shared.dim.births.size);
     std::vector<real_type> S_age(shared.dim.S_age.size);
@@ -840,6 +850,7 @@ public:
     std::vector<real_type> P_age(shared.dim.P_age.size);
     std::vector<real_type> phi(shared.dim.phi.size);
     std::vector<real_type> n_prev(shared.dim.n_prev.size);
+    std::vector<real_type> any_prev(shared.dim.any_prev.size);
     std::vector<real_type> icm_pop(shared.dim.icm_pop.size);
     std::vector<real_type> ica_pop(shared.dim.ica_pop.size);
     std::vector<real_type> id_pop(shared.dim.id_pop.size);
@@ -869,8 +880,8 @@ public:
     std::vector<real_type> w_species2_(shared.dim.w_species2_.size);
     std::vector<real_type> z_species1_(shared.dim.z_species1_.size);
     std::vector<real_type> z_species2_(shared.dim.z_species2_.size);
-    std::vector<real_type> clin_inc(shared.dim.clin_inc.size);
     std::vector<real_type> detect_prev(shared.dim.detect_prev.size);
+    std::vector<real_type> clin_inc(shared.dim.clin_inc.size);
     std::vector<real_type> w_species1(shared.dim.w_species1.size);
     std::vector<real_type> w_species2(shared.dim.w_species2.size);
     std::vector<real_type> z_species1(shared.dim.z_species1.size);
@@ -888,7 +899,7 @@ public:
     std::vector<real_type> EIR(shared.dim.EIR.size);
     std::vector<real_type> FOI_lag(shared.dim.FOI_lag.size);
     std::vector<real_type> epsilon_0(shared.dim.epsilon_0.size);
-    return internal_state{S_death, TP_trans, T_death, DA_trans, D_death, AU_trans, A_death, US_trans, U_death, PS_trans, P_death, FOI, init_ICM_pre, IC, b, all, births, S_age, T_age, D_age, A_age, U_age, P_age, phi, n_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, all_deaths, ST_rate, SD_rate, SA_rate, AT_rate, AD_rate, UA_rate, UD_rate, UT_rate, p_det, ST_trans, SD_trans, SA_trans, AT_trans, AD_trans, UA_trans, UD_trans, UT_trans, cA, detect_prev_full, w_species1_, w_species2_, z_species1_, z_species2_, clin_inc, detect_prev, w_species1, w_species2, z_species1, z_species2, zhi_species1, whi_species1, zhi_species2, whi_species2, av_mosq_species1, av_mosq_species2, EIR_species1, EIR_species2, FOIvijk_species1, FOIvijk_species2, EIR, FOI_lag, epsilon_0};
+    return internal_state{S_death, TP_trans, T_death, DA_trans, D_death, AU_trans, A_death, US_trans, U_death, PS_trans, P_death, FOI, init_ICM_pre, IC, b, any_prev_full, all, births, S_age, T_age, D_age, A_age, U_age, P_age, phi, n_prev, any_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, all_deaths, ST_rate, SD_rate, SA_rate, AT_rate, AD_rate, UA_rate, UD_rate, UT_rate, p_det, ST_trans, SD_trans, SA_trans, AT_trans, AD_trans, UA_trans, UD_trans, UT_trans, cA, detect_prev_full, w_species1_, w_species2_, z_species1_, z_species2_, detect_prev, clin_inc, w_species1, w_species2, z_species1, z_species2, zhi_species1, whi_species1, zhi_species2, whi_species2, av_mosq_species1, av_mosq_species2, EIR_species1, EIR_species2, FOIvijk_species1, FOIvijk_species2, EIR, FOI_lag, epsilon_0};
   }
   static void update_shared(cpp11::list parameters, shared_state& shared) {
     shared.ft = dust2::r::read_real(parameters, "ft", shared.ft);
@@ -1129,11 +1140,14 @@ public:
     for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
       state[i - 1 + shared.odin.offset.state[43]] = shared.min_age_prev[i - 1];
     }
-    for (size_t i = 1; i <= shared.dim.n_ud_detect_prev.size; ++i) {
+    for (size_t i = 1; i <= shared.dim.n_ud_any_prev.size; ++i) {
       state[i - 1 + shared.odin.offset.state[44]] = shared.min_age_prev[i - 1];
     }
+    for (size_t i = 1; i <= shared.dim.n_ud_detect_prev.size; ++i) {
+      state[i - 1 + shared.odin.offset.state[45]] = shared.min_age_prev[i - 1];
+    }
     for (size_t i = 1; i <= shared.dim.n_ud_inc.size; ++i) {
-      state[i - 1 + shared.odin.offset.state[45]] = shared.min_age_inc[i - 1];
+      state[i - 1 + shared.odin.offset.state[46]] = shared.min_age_inc[i - 1];
     }
     state[15] = 0;
     state[16] = 0;
@@ -1294,6 +1308,13 @@ public:
         }
       }
     }
+    for (size_t i = 1; i <= shared.dim.any_prev_full.dim[0]; ++i) {
+      for (size_t j = 1; j <= shared.dim.any_prev_full.dim[1]; ++j) {
+        for (size_t k = 1; k <= shared.dim.any_prev_full.dim[2]; ++k) {
+          internal.any_prev_full[i - 1 + (j - 1) * shared.dim.any_prev_full.mult[1] + (k - 1) * shared.dim.any_prev_full.mult[2]] = T[i - 1 + (j - 1) * shared.dim.T.mult[1] + (k - 1) * shared.dim.T.mult[2]] + D[i - 1 + (j - 1) * shared.dim.D.mult[1] + (k - 1) * shared.dim.D.mult[2]] + A[i - 1 + (j - 1) * shared.dim.A.mult[1] + (k - 1) * shared.dim.A.mult[2]] + U[i - 1 + (j - 1) * shared.dim.U.mult[1] + (k - 1) * shared.dim.U.mult[2]];
+        }
+      }
+    }
     for (size_t i = 1; i <= shared.dim.all.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.all.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.all.dim[2]; ++k) {
@@ -1357,6 +1378,9 @@ public:
     }
     for (size_t i = 1; i <= static_cast<size_t>(shared.prev_dim); ++i) {
       internal.n_prev[i - 1] = dust2::array::sum<real_type>(S, shared.dim.S, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.S.dim[1] - 1}, {0, shared.dim.S.dim[2] - 1}) + dust2::array::sum<real_type>(T, shared.dim.T, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.T.dim[1] - 1}, {0, shared.dim.T.dim[2] - 1}) + dust2::array::sum<real_type>(D, shared.dim.D, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.D.dim[1] - 1}, {0, shared.dim.D.dim[2] - 1}) + dust2::array::sum<real_type>(A, shared.dim.A, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.A.dim[1] - 1}, {0, shared.dim.A.dim[2] - 1}) + dust2::array::sum<real_type>(U, shared.dim.U, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.U.dim[1] - 1}, {0, shared.dim.U.dim[2] - 1}) + dust2::array::sum<real_type>(P, shared.dim.P, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.P.dim[1] - 1}, {0, shared.dim.P.dim[2] - 1});
+    }
+    for (size_t i = 1; i <= static_cast<size_t>(shared.prev_dim); ++i) {
+      internal.any_prev[i - 1] = dust2::array::sum<real_type>(internal.any_prev_full.data(), shared.dim.any_prev_full, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.any_prev_full.dim[1] - 1}, {0, shared.dim.any_prev_full.dim[2] - 1});
     }
     for (size_t i = 1; i <= shared.dim.icm_pop.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.icm_pop.dim[1]; ++j) {
@@ -1571,15 +1595,15 @@ public:
     internal.z_species2_[1] = z2_species2 * itn_eff_cov;
     internal.z_species2_[2] = z3_species2 * irs_eff_cov;
     internal.z_species2_[3] = z2_species2 * (1 - irs_eff_cov) * itn_eff_cov + z3_species2 * irs_eff_cov * (1 - itn_eff_cov) + z4_species2 * irs_eff_cov * itn_eff_cov;
+    for (size_t i = 1; i <= static_cast<size_t>(shared.prev_dim); ++i) {
+      internal.detect_prev[i - 1] = dust2::array::sum<real_type>(internal.detect_prev_full.data(), shared.dim.detect_prev_full, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.detect_prev_full.dim[1] - 1}, {0, shared.dim.detect_prev_full.dim[2] - 1});
+    }
     for (size_t i = 1; i <= shared.dim.clin_inc.dim[0]; ++i) {
       for (size_t j = 1; j <= shared.dim.clin_inc.dim[1]; ++j) {
         for (size_t k = 1; k <= shared.dim.clin_inc.dim[2]; ++k) {
           internal.clin_inc[i - 1 + (j - 1) * shared.dim.clin_inc.mult[1] + (k - 1) * shared.dim.clin_inc.mult[2]] = internal.ST_trans[i - 1 + (j - 1) * shared.dim.ST_trans.mult[1] + (k - 1) * shared.dim.ST_trans.mult[2]] + internal.SD_trans[i - 1 + (j - 1) * shared.dim.SD_trans.mult[1] + (k - 1) * shared.dim.SD_trans.mult[2]] + internal.AT_trans[i - 1 + (j - 1) * shared.dim.AT_trans.mult[1] + (k - 1) * shared.dim.AT_trans.mult[2]] + internal.AD_trans[i - 1 + (j - 1) * shared.dim.AD_trans.mult[1] + (k - 1) * shared.dim.AD_trans.mult[2]] + internal.UD_trans[i - 1 + (j - 1) * shared.dim.UD_trans.mult[1] + (k - 1) * shared.dim.UD_trans.mult[2]] + internal.UT_trans[i - 1 + (j - 1) * shared.dim.UT_trans.mult[1] + (k - 1) * shared.dim.UT_trans.mult[2]];
         }
       }
-    }
-    for (size_t i = 1; i <= static_cast<size_t>(shared.prev_dim); ++i) {
-      internal.detect_prev[i - 1] = dust2::array::sum<real_type>(internal.detect_prev_full.data(), shared.dim.detect_prev_full, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.detect_prev_full.dim[1] - 1}, {0, shared.dim.detect_prev_full.dim[2] - 1});
     }
     for (size_t i = 1; i <= shared.dim.w_species1.size; ++i) {
       internal.w_species1[i - 1] = internal.w_species1_[i - 1];
@@ -1894,11 +1918,14 @@ public:
     for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
       state_next[i - 1 + shared.odin.offset.state[43]] = internal.n_prev[i - 1];
     }
+    for (size_t i = 1; i <= shared.dim.n_ud_any_prev.size; ++i) {
+      state_next[i - 1 + shared.odin.offset.state[44]] = internal.any_prev[i - 1];
+    }
     for (size_t i = 1; i <= shared.dim.n_ud_detect_prev.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[44]] = internal.detect_prev[i - 1];
+      state_next[i - 1 + shared.odin.offset.state[45]] = internal.detect_prev[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_inc.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[45]] = dust2::array::sum<real_type>(internal.clin_inc.data(), shared.dim.clin_inc, {shared.min_age_inc[i - 1] - 1, shared.max_age_inc[i - 1] - 1}, {0, shared.dim.clin_inc.dim[1] - 1}, {0, shared.dim.clin_inc.dim[2] - 1}) / dt;
+      state_next[i - 1 + shared.odin.offset.state[46]] = dust2::array::sum<real_type>(internal.clin_inc.data(), shared.dim.clin_inc, {shared.min_age_inc[i - 1] - 1, shared.max_age_inc[i - 1] - 1}, {0, shared.dim.clin_inc.dim[1] - 1}, {0, shared.dim.clin_inc.dim[2] - 1}) / dt;
     }
     state_next[15] = Sh;
     state_next[16] = Th;

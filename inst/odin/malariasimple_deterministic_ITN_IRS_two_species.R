@@ -808,8 +808,6 @@ av_mosq_species2[1:num_int] <- av_species2 * w_species2[i] / wh_species2 # rate 
 ## MODEL OUTPUTS ##
 ###################
 ##------------------------------------------------------------------------------
-dim(clin_inc) <- c(na,nh,num_int)
-clin_inc[,,] <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
 
 prev_dim <- parameter()
 dim(min_age_prev) <- prev_dim
@@ -817,23 +815,28 @@ dim(max_age_prev) <- prev_dim
 min_age_prev <- parameter(type = "integer")
 max_age_prev <- parameter(type = "integer")
 
-dim(n_prev) <- prev_dim
-
-n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_prev[i]:max_age_prev[i],,]) + sum(D[min_age_prev[i]:max_age_prev[i],,]) +
-  sum(A[min_age_prev[i]:max_age_prev[i],,]) + sum(U[min_age_prev[i]:max_age_prev[i],,]) + sum(P[min_age_prev[i]:max_age_prev[i],,])
-
-dim(detect_prev_full) <- c(na,nh,num_int)
-detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
-
-dim(detect_prev) <- prev_dim
-detect_prev[1:prev_dim] <- sum(detect_prev_full[min_age_prev[i]:max_age_prev[i],,])
-
 ##Proportion of population in user defined prevalence age groups
+dim(n_prev) <- prev_dim
 dim(n_ud_prev) <- prev_dim
 initial(n_ud_prev[]) <- min_age_prev[i] #user defined prevalence
+n_prev[1:prev_dim] <- sum(S[min_age_prev[i]:max_age_prev[i],,]) + sum(T[min_age_prev[i]:max_age_prev[i],,]) + sum(D[min_age_prev[i]:max_age_prev[i],,]) +
+  sum(A[min_age_prev[i]:max_age_prev[i],,]) + sum(U[min_age_prev[i]:max_age_prev[i],,]) + sum(P[min_age_prev[i]:max_age_prev[i],,])
 update(n_ud_prev[]) <- n_prev[i]
 
+##Proportion of population in user defined prevalence age groups with any malaria
+dim(any_prev) <- prev_dim
+dim(any_prev_full) <- c(na,nh,num_int)
+any_prev_full[,,] <- T[i,j,k] + D[i,j,k] + A[i,j,k] + U[i,j,k]
+any_prev[1:prev_dim] <- sum(any_prev_full[min_age_prev[i]:max_age_prev[i],,])
+dim(n_ud_any_prev) <- prev_dim
+initial(n_ud_any_prev[]) <- min_age_prev[i]
+update(n_ud_any_prev[]) <- any_prev[i]
+
 ##Proportion of population in user defined prevalence age groups with detectable malaria
+dim(detect_prev) <- prev_dim
+dim(detect_prev_full) <- c(na,nh,num_int)
+detect_prev_full[,,] <- T[i,j,k] + D[i,j,k]  + A[i,j,k]*p_det[i,j,k]
+detect_prev[1:prev_dim] <- sum(detect_prev_full[min_age_prev[i]:max_age_prev[i],,])
 dim(n_ud_detect_prev) <- prev_dim
 initial(n_ud_detect_prev[]) <- min_age_prev[i]
 update(n_ud_detect_prev[]) <- detect_prev[i]
@@ -845,6 +848,9 @@ dim(max_age_inc) <- inc_dim
 min_age_inc <- parameter(type = "integer")
 max_age_inc <- parameter(type = "integer")
 
+## Calculating Clinical Incidence
+dim(clin_inc) <- c(na,nh,num_int)
+clin_inc[,,] <- ST_trans[i,j,k] + SD_trans[i,j,k] + AT_trans[i,j,k] + AD_trans[i,j,k] + UD_trans[i,j,k]  + UT_trans[i,j,k]
 dim(n_ud_inc) <- inc_dim
 initial(n_ud_inc[]) <- min_age_inc[i]
 update(n_ud_inc[]) <- sum(clin_inc[min_age_inc[i]:max_age_inc[i],,]) / dt
