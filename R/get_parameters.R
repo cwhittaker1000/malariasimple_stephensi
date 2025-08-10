@@ -64,6 +64,7 @@
 #' @param chi_species2 Endophily probability
 #' @param phi_bed_species2 Percentage of bites indoors and in bed
 #' @param phi_indoors_species2 Percentage of bites indoors
+#' @param density_vec_species1_input Density vector over time for species 1 (basically dictates carrying capacity in absence of seasonal variation)
 #' @param density_vec_species2_input Density vector over time for species 2 (basically dictates carrying capacity in absence of seasonal variation)
 #' @param theta_species1_input Seasonal variation in carrying capacity for species 1
 #' @param theta_species2_input Seasonal variation in carrying capacity for species 2
@@ -160,6 +161,7 @@ get_parameters <- function(
     phi_bed_species2 = 0.85,
     phi_indoors_species2 = 0.9,
     k0 = 0.699,
+    density_vec_species1_input = rep(1, n_days + 1),
     density_vec_species2_input = rep(1, n_days + 1),
     theta_species1_input = rep(1, n_days + 1),
     theta_species2_input = rep(1, n_days + 1),
@@ -302,7 +304,7 @@ get_parameters <- function(
   params$p10 <- exp(-mum * foraging_time)  # probability of surviving one feeding cycle
   params$p2 <- exp(-mum * gonotrophic_cycle)  # probability of surviving one resting cycle
   params$k0 <- k0
-  # params$density_vec_species1_input <- density_vec_species1_input
+  params$density_vec_species1_input <- density_vec_species1_input
   params$density_vec_species2_input <- density_vec_species2_input
   params$theta_species1_input <- theta_species1_input
   params$theta_species2_input <- theta_species2_input
