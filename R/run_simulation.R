@@ -31,10 +31,9 @@ run_simulation <- function(params, full_output = FALSE){
   #Only output select variables (unless requested otherwise)
   if(!full_output){
     selected_cols <- c("time","mv_species1", "mv_species2",
-                       grep("n_any*", colnames(out), value = TRUE),
+                       grep("n_any_malaria*", colnames(out), value = TRUE),
                        grep("n_clin_inc*", colnames(out), value = TRUE),
-                       # grep("_count$", colnames(out), value = TRUE),
-                       grep("^n_0", colnames(out), value = TRUE))
+                       grep("^n_pop*", colnames(out), value = TRUE))
     out <- out[,selected_cols]
 
   }
@@ -55,9 +54,9 @@ get_output_colnames <- function(sys, params){
   }
 
   #Improve naming of user-defined outputs
-  index[index == "n_ud_prev"] <- paste("n",params$age_vector[params$min_age_n], params$population_rendering_max_ages,sep="_")         ## this is population size
-  index[index == "n_ud_any_prev"] <- paste("n_any",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is any malaria
-  index[index == "n_ud_detect_prev"] <- paste("n_detect",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is detectable malaria
+  index[index == "n_ud_pop"] <- paste("n_pop",params$age_vector[params$min_age_n], params$population_rendering_max_ages,sep="_")         ## this is population size
+  index[index == "n_ud_any_prev"] <- paste("n_any_malaria",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is any malaria
+  index[index == "n_ud_detect_prev"] <- paste("n_detectable_malaria",params$age_vector[params$min_age_prev], params$prevalence_rendering_max_ages,sep="_") ## this is detectable malaria
   index[index == "n_ud_inc"] <- paste("n_clin_inc",params$age_vector[params$min_age_inc], params$clin_inc_rendering_max_ages,sep="_")          ## this is clinical incidence
   return(index)
 }

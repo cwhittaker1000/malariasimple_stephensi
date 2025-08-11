@@ -67,8 +67,8 @@
 // [[dust2::parameter(cT, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(gamma1, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(lag_ratesMos, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
-// [[dust2::parameter(FOIv_eq, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(omega, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(FOIv_eq, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(delayGam, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(delayMos, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(human_pop, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
@@ -106,12 +106,12 @@
 // [[dust2::parameter(Q0_species2, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(phi_bed_species2, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(phi_indoors_species2, type = "real_type", rank = 0, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(prev_dim, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
-// [[dust2::parameter(min_age_prev, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
-// [[dust2::parameter(max_age_prev, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(n_dim, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(min_age_n, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(max_age_n, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(prev_dim, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
+// [[dust2::parameter(min_age_prev, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
+// [[dust2::parameter(max_age_prev, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(inc_dim, type = "int", rank = 0, required = TRUE, constant = TRUE)]]
 // [[dust2::parameter(min_age_inc, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
 // [[dust2::parameter(max_age_inc, type = "int", rank = 1, required = TRUE, constant = FALSE)]]
@@ -206,8 +206,8 @@ public:
       dust2::array::dimensions<3> p_det;
       dust2::array::dimensions<3> cA;
       dust2::array::dimensions<1> FOIv_species1;
-      dust2::array::dimensions<1> FOIv_species2;
       dust2::array::dimensions<3> FOIvijk_species1;
+      dust2::array::dimensions<1> FOIv_species2;
       dust2::array::dimensions<3> FOIvijk_species2;
       dust2::array::dimensions<1> ince_delay_species1;
       dust2::array::dimensions<1> ince_delay_species2;
@@ -237,12 +237,12 @@ public:
       dust2::array::dimensions<1> whi_species2;
       dust2::array::dimensions<1> av_mosq_species1;
       dust2::array::dimensions<1> av_mosq_species2;
-      dust2::array::dimensions<1> min_age_prev;
-      dust2::array::dimensions<1> max_age_prev;
       dust2::array::dimensions<1> min_age_n;
       dust2::array::dimensions<1> max_age_n;
-      dust2::array::dimensions<1> n_prev;
-      dust2::array::dimensions<1> n_ud_prev;
+      dust2::array::dimensions<1> n_pop;
+      dust2::array::dimensions<1> n_ud_pop;
+      dust2::array::dimensions<1> min_age_prev;
+      dust2::array::dimensions<1> max_age_prev;
       dust2::array::dimensions<1> any_prev;
       dust2::array::dimensions<3> any_prev_full;
       dust2::array::dimensions<1> n_ud_any_prev;
@@ -307,8 +307,8 @@ public:
     real_type cT;
     real_type gamma1;
     int lag_ratesMos;
-    real_type FOIv_eq;
     real_type omega;
+    real_type FOIv_eq;
     real_type delayGam;
     real_type delayMos;
     real_type human_pop;
@@ -340,8 +340,8 @@ public:
     real_type w1_species2;
     real_type z1_species1;
     real_type z1_species2;
-    int prev_dim;
     int n_dim;
+    int prev_dim;
     int inc_dim;
     real_type delayMos_use;
     real_type mum_use;
@@ -378,10 +378,10 @@ public:
     std::vector<real_type> s_itn_daily;
     std::vector<real_type> itn_eff_cov_daily;
     std::vector<real_type> cov;
-    std::vector<int> min_age_prev;
-    std::vector<int> max_age_prev;
     std::vector<int> min_age_n;
     std::vector<int> max_age_n;
+    std::vector<int> min_age_prev;
+    std::vector<int> max_age_prev;
     std::vector<int> min_age_inc;
     std::vector<int> max_age_inc;
     std::vector<real_type> fd;
@@ -422,7 +422,7 @@ public:
     std::vector<real_type> U_age;
     std::vector<real_type> P_age;
     std::vector<real_type> phi;
-    std::vector<real_type> n_prev;
+    std::vector<real_type> n_pop;
     std::vector<real_type> any_prev;
     std::vector<real_type> icm_pop;
     std::vector<real_type> ica_pop;
@@ -524,8 +524,8 @@ public:
     const real_type cT = dust2::r::read_real(parameters, "cT");
     const real_type gamma1 = dust2::r::read_real(parameters, "gamma1");
     const int lag_ratesMos = dust2::r::read_int(parameters, "lag_ratesMos");
-    const real_type FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq");
     const real_type omega = dust2::r::read_real(parameters, "omega");
+    const real_type FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq");
     const real_type delayGam = dust2::r::read_real(parameters, "delayGam");
     const real_type delayMos = dust2::r::read_real(parameters, "delayMos");
     const real_type human_pop = dust2::r::read_real(parameters, "human_pop");
@@ -562,8 +562,8 @@ public:
     const real_type z1_species2 = 0;
     dim.z_species1_.set({static_cast<size_t>(4)});
     dim.z_species2_.set({static_cast<size_t>(4)});
-    const int prev_dim = dust2::r::read_int(parameters, "prev_dim");
     const int n_dim = dust2::r::read_int(parameters, "n_dim");
+    const int prev_dim = dust2::r::read_int(parameters, "prev_dim");
     const int inc_dim = dust2::r::read_int(parameters, "inc_dim");
     dim.days.set({static_cast<size_t>(n_days + 1)});
     dim.age_rate.set({static_cast<size_t>(na)});
@@ -641,8 +641,8 @@ public:
     dim.p_det.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.cA.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.FOIv_species1.set({static_cast<size_t>(lag_ratesMos)});
-    dim.FOIv_species2.set({static_cast<size_t>(lag_ratesMos)});
     dim.FOIvijk_species1.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
+    dim.FOIv_species2.set({static_cast<size_t>(lag_ratesMos)});
     dim.FOIvijk_species2.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.ince_delay_species1.set({static_cast<size_t>(lag_ratesMos)});
     dim.ince_delay_species2.set({static_cast<size_t>(lag_ratesMos)});
@@ -675,12 +675,12 @@ public:
     dim.whi_species2.set({static_cast<size_t>(num_int)});
     dim.av_mosq_species1.set({static_cast<size_t>(num_int)});
     dim.av_mosq_species2.set({static_cast<size_t>(num_int)});
-    dim.min_age_prev.set({static_cast<size_t>(prev_dim)});
-    dim.max_age_prev.set({static_cast<size_t>(prev_dim)});
     dim.min_age_n.set({static_cast<size_t>(n_dim)});
     dim.max_age_n.set({static_cast<size_t>(n_dim)});
-    dim.n_prev.set({static_cast<size_t>(n_dim)});
-    dim.n_ud_prev.set({static_cast<size_t>(n_dim)});
+    dim.n_pop.set({static_cast<size_t>(n_dim)});
+    dim.n_ud_pop.set({static_cast<size_t>(n_dim)});
+    dim.min_age_prev.set({static_cast<size_t>(prev_dim)});
+    dim.max_age_prev.set({static_cast<size_t>(prev_dim)});
     dim.any_prev.set({static_cast<size_t>(prev_dim)});
     dim.any_prev_full.set({static_cast<size_t>(na), static_cast<size_t>(nh), static_cast<size_t>(num_int)});
     dim.n_ud_any_prev.set({static_cast<size_t>(prev_dim)});
@@ -761,14 +761,14 @@ public:
     for (size_t i = 1; i <= dim.cov.size; ++i) {
       cov[i - 1] = cov_[i - 1];
     }
-    std::vector<int> min_age_prev(dim.min_age_prev.size);
-    dust2::r::read_int_array(parameters, dim.min_age_prev, min_age_prev.data(), "min_age_prev", true);
-    std::vector<int> max_age_prev(dim.max_age_prev.size);
-    dust2::r::read_int_array(parameters, dim.max_age_prev, max_age_prev.data(), "max_age_prev", true);
     std::vector<int> min_age_n(dim.min_age_n.size);
     dust2::r::read_int_array(parameters, dim.min_age_n, min_age_n.data(), "min_age_n", true);
     std::vector<int> max_age_n(dim.max_age_n.size);
     dust2::r::read_int_array(parameters, dim.max_age_n, max_age_n.data(), "max_age_n", true);
+    std::vector<int> min_age_prev(dim.min_age_prev.size);
+    dust2::r::read_int_array(parameters, dim.min_age_prev, min_age_prev.data(), "min_age_prev", true);
+    std::vector<int> max_age_prev(dim.max_age_prev.size);
+    dust2::r::read_int_array(parameters, dim.max_age_prev, max_age_prev.data(), "max_age_prev", true);
     std::vector<int> min_age_inc(dim.min_age_inc.size);
     dust2::r::read_int_array(parameters, dim.min_age_inc, min_age_inc.data(), "min_age_inc", true);
     std::vector<int> max_age_inc(dim.max_age_inc.size);
@@ -832,13 +832,13 @@ public:
       {"FOIv_species2", std::vector<size_t>(dim.FOIv_species2.dim.begin(), dim.FOIv_species2.dim.end())},
       {"ince_delay_species1", std::vector<size_t>(dim.ince_delay_species1.dim.begin(), dim.ince_delay_species1.dim.end())},
       {"ince_delay_species2", std::vector<size_t>(dim.ince_delay_species2.dim.begin(), dim.ince_delay_species2.dim.end())},
-      {"n_ud_prev", std::vector<size_t>(dim.n_ud_prev.dim.begin(), dim.n_ud_prev.dim.end())},
+      {"n_ud_pop", std::vector<size_t>(dim.n_ud_pop.dim.begin(), dim.n_ud_pop.dim.end())},
       {"n_ud_any_prev", std::vector<size_t>(dim.n_ud_any_prev.dim.begin(), dim.n_ud_any_prev.dim.end())},
       {"n_ud_detect_prev", std::vector<size_t>(dim.n_ud_detect_prev.dim.begin(), dim.n_ud_detect_prev.dim.end())},
       {"n_ud_inc", std::vector<size_t>(dim.n_ud_inc.dim.begin(), dim.n_ud_inc.dim.end())}
     };
     odin.packing.state.copy_offset(odin.offset.state.begin());
-    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, FOIv_eq, omega, delayGam, delayMos, human_pop, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_irs_cov, max_itn_cov, num_int, Q0_species1, phi_bed_species1, phi_indoors_species1, Q0_species2, phi_bed_species2, phi_indoors_species2, w1_species1, w1_species2, z1_species1, z1_species2, prev_dim, n_dim, inc_dim, delayMos_use, mum_use, b_lambda, cov_, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, density_vec_species1_input, density_vec_species2_input, theta_species1_input, theta_species2_input, rs, ss, irs_eff_cov_daily, r_itn_daily, s_itn_daily, itn_eff_cov_daily, cov, min_age_prev, max_age_prev, min_age_n, max_age_n, min_age_inc, max_age_inc, fd, interpolate_density_vec_species1, interpolate_density_vec_species2, interpolate_theta_species1, interpolate_theta_species2, interpolate_r_irs, interpolate_s_irs, interpolate_irs_eff_cov, interpolate_r_itn, interpolate_s_itn, interpolate_itn_eff_cov};
+    return shared_state{odin, dim, n_days, na, nh, ft, eta, rA, rT, rD, rU, rP, dE, lag_rates, dCM, uCA, dCA, dB, uB, dID, uD, age20l, age20u, age_20_factor, PM, phi0, phi1, IC0, kC, b0, b1, kB, IB0, aD, fD0, gammaD, d1, ID0, kD, init_Sv, init_Pv, init_Iv, cU, cD, cT, gamma1, lag_ratesMos, omega, FOIv_eq, delayGam, delayMos, human_pop, dLL, dPL, dEL, muLL, muEL, muPL, gammaL, mv0, mum, foraging_time, gonotrophic_cycle, betaL, init_PL, init_LL, init_EL, max_irs_cov, max_itn_cov, num_int, Q0_species1, phi_bed_species1, phi_indoors_species1, Q0_species2, phi_bed_species2, phi_indoors_species2, w1_species1, w1_species2, z1_species1, z1_species2, n_dim, prev_dim, inc_dim, delayMos_use, mum_use, b_lambda, cov_, days, age_rate, het_wt, init_S, init_T, init_D, init_A, init_U, init_P, FOI_eq, psi, zeta, x_I, init_ICM, init_ICA, init_IB, init_ID, age_vector, p10, p2, density_vec_species1_input, density_vec_species2_input, theta_species1_input, theta_species2_input, rs, ss, irs_eff_cov_daily, r_itn_daily, s_itn_daily, itn_eff_cov_daily, cov, min_age_n, max_age_n, min_age_prev, max_age_prev, min_age_inc, max_age_inc, fd, interpolate_density_vec_species1, interpolate_density_vec_species2, interpolate_theta_species1, interpolate_theta_species2, interpolate_r_irs, interpolate_s_irs, interpolate_irs_eff_cov, interpolate_r_itn, interpolate_s_itn, interpolate_itn_eff_cov};
   }
   static internal_state build_internal(const shared_state& shared) {
     std::vector<real_type> S_death(shared.dim.S_death.size);
@@ -866,7 +866,7 @@ public:
     std::vector<real_type> U_age(shared.dim.U_age.size);
     std::vector<real_type> P_age(shared.dim.P_age.size);
     std::vector<real_type> phi(shared.dim.phi.size);
-    std::vector<real_type> n_prev(shared.dim.n_prev.size);
+    std::vector<real_type> n_pop(shared.dim.n_pop.size);
     std::vector<real_type> any_prev(shared.dim.any_prev.size);
     std::vector<real_type> icm_pop(shared.dim.icm_pop.size);
     std::vector<real_type> ica_pop(shared.dim.ica_pop.size);
@@ -916,7 +916,7 @@ public:
     std::vector<real_type> EIR(shared.dim.EIR.size);
     std::vector<real_type> FOI_lag(shared.dim.FOI_lag.size);
     std::vector<real_type> epsilon_0(shared.dim.epsilon_0.size);
-    return internal_state{S_death, TP_trans, T_death, DA_trans, D_death, AU_trans, A_death, US_trans, U_death, PS_trans, P_death, FOI, init_ICM_pre, IC, b, any_prev_full, all, births, S_age, T_age, D_age, A_age, U_age, P_age, phi, n_prev, any_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, all_deaths, ST_rate, SD_rate, SA_rate, AT_rate, AD_rate, UA_rate, UD_rate, UT_rate, p_det, ST_trans, SD_trans, SA_trans, AT_trans, AD_trans, UA_trans, UD_trans, UT_trans, cA, detect_prev_full, w_species1_, w_species2_, z_species1_, z_species2_, detect_prev, clin_inc, w_species1, w_species2, z_species1, z_species2, zhi_species1, whi_species1, zhi_species2, whi_species2, av_mosq_species1, av_mosq_species2, EIR_species1, EIR_species2, FOIvijk_species1, FOIvijk_species2, EIR, FOI_lag, epsilon_0};
+    return internal_state{S_death, TP_trans, T_death, DA_trans, D_death, AU_trans, A_death, US_trans, U_death, PS_trans, P_death, FOI, init_ICM_pre, IC, b, any_prev_full, all, births, S_age, T_age, D_age, A_age, U_age, P_age, phi, n_pop, any_prev, icm_pop, ica_pop, id_pop, ib_pop, ic_pop, all_deaths, ST_rate, SD_rate, SA_rate, AT_rate, AD_rate, UA_rate, UD_rate, UT_rate, p_det, ST_trans, SD_trans, SA_trans, AT_trans, AD_trans, UA_trans, UD_trans, UT_trans, cA, detect_prev_full, w_species1_, w_species2_, z_species1_, z_species2_, detect_prev, clin_inc, w_species1, w_species2, z_species1, z_species2, zhi_species1, whi_species1, zhi_species2, whi_species2, av_mosq_species1, av_mosq_species2, EIR_species1, EIR_species2, FOIvijk_species1, FOIvijk_species2, EIR, FOI_lag, epsilon_0};
   }
   static void update_shared(cpp11::list parameters, shared_state& shared) {
     shared.ft = dust2::r::read_real(parameters, "ft", shared.ft);
@@ -959,8 +959,8 @@ public:
     shared.cD = dust2::r::read_real(parameters, "cD", shared.cD);
     shared.cT = dust2::r::read_real(parameters, "cT", shared.cT);
     shared.gamma1 = dust2::r::read_real(parameters, "gamma1", shared.gamma1);
-    shared.FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq", shared.FOIv_eq);
     shared.omega = dust2::r::read_real(parameters, "omega", shared.omega);
+    shared.FOIv_eq = dust2::r::read_real(parameters, "FOIv_eq", shared.FOIv_eq);
     shared.delayGam = dust2::r::read_real(parameters, "delayGam", shared.delayGam);
     shared.delayMos = dust2::r::read_real(parameters, "delayMos", shared.delayMos);
     shared.human_pop = dust2::r::read_real(parameters, "human_pop", shared.human_pop);
@@ -1027,10 +1027,10 @@ public:
     for (size_t i = 1; i <= shared.dim.cov.size; ++i) {
       shared.cov[i - 1] = shared.cov_[i - 1];
     }
-    dust2::r::read_int_array(parameters, shared.dim.min_age_prev, shared.min_age_prev.data(), "min_age_prev", false);
-    dust2::r::read_int_array(parameters, shared.dim.max_age_prev, shared.max_age_prev.data(), "max_age_prev", false);
     dust2::r::read_int_array(parameters, shared.dim.min_age_n, shared.min_age_n.data(), "min_age_n", false);
     dust2::r::read_int_array(parameters, shared.dim.max_age_n, shared.max_age_n.data(), "max_age_n", false);
+    dust2::r::read_int_array(parameters, shared.dim.min_age_prev, shared.min_age_prev.data(), "min_age_prev", false);
+    dust2::r::read_int_array(parameters, shared.dim.max_age_prev, shared.max_age_prev.data(), "max_age_prev", false);
     dust2::r::read_int_array(parameters, shared.dim.min_age_inc, shared.min_age_inc.data(), "min_age_inc", false);
     dust2::r::read_int_array(parameters, shared.dim.max_age_inc, shared.max_age_inc.data(), "max_age_inc", false);
     for (size_t i = 1; i <= static_cast<size_t>(shared.na); ++i) {
@@ -1156,7 +1156,7 @@ public:
     state[12] = shared.init_PL * static_cast<real_type>(0.01);
     state[13] = shared.init_LL * static_cast<real_type>(0.01);
     state[14] = shared.init_EL * static_cast<real_type>(0.01);
-    for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
+    for (size_t i = 1; i <= shared.dim.n_ud_pop.size; ++i) {
       state[i - 1 + shared.odin.offset.state[43]] = shared.min_age_n[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_any_prev.size; ++i) {
@@ -1396,7 +1396,7 @@ public:
       }
     }
     for (size_t i = 1; i <= static_cast<size_t>(shared.n_dim); ++i) {
-      internal.n_prev[i - 1] = dust2::array::sum<real_type>(S, shared.dim.S, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.S.dim[1] - 1}, {0, shared.dim.S.dim[2] - 1}) + dust2::array::sum<real_type>(T, shared.dim.T, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.T.dim[1] - 1}, {0, shared.dim.T.dim[2] - 1}) + dust2::array::sum<real_type>(D, shared.dim.D, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.D.dim[1] - 1}, {0, shared.dim.D.dim[2] - 1}) + dust2::array::sum<real_type>(A, shared.dim.A, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.A.dim[1] - 1}, {0, shared.dim.A.dim[2] - 1}) + dust2::array::sum<real_type>(U, shared.dim.U, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.U.dim[1] - 1}, {0, shared.dim.U.dim[2] - 1}) + dust2::array::sum<real_type>(P, shared.dim.P, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.P.dim[1] - 1}, {0, shared.dim.P.dim[2] - 1});
+      internal.n_pop[i - 1] = dust2::array::sum<real_type>(S, shared.dim.S, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.S.dim[1] - 1}, {0, shared.dim.S.dim[2] - 1}) + dust2::array::sum<real_type>(T, shared.dim.T, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.T.dim[1] - 1}, {0, shared.dim.T.dim[2] - 1}) + dust2::array::sum<real_type>(D, shared.dim.D, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.D.dim[1] - 1}, {0, shared.dim.D.dim[2] - 1}) + dust2::array::sum<real_type>(A, shared.dim.A, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.A.dim[1] - 1}, {0, shared.dim.A.dim[2] - 1}) + dust2::array::sum<real_type>(U, shared.dim.U, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.U.dim[1] - 1}, {0, shared.dim.U.dim[2] - 1}) + dust2::array::sum<real_type>(P, shared.dim.P, {shared.min_age_n[i - 1] - 1, shared.max_age_n[i - 1] - 1}, {0, shared.dim.P.dim[1] - 1}, {0, shared.dim.P.dim[2] - 1});
     }
     for (size_t i = 1; i <= static_cast<size_t>(shared.prev_dim); ++i) {
       internal.any_prev[i - 1] = dust2::array::sum<real_type>(internal.any_prev_full.data(), shared.dim.any_prev_full, {shared.min_age_prev[i - 1] - 1, shared.max_age_prev[i - 1] - 1}, {0, shared.dim.any_prev_full.dim[1] - 1}, {0, shared.dim.any_prev_full.dim[2] - 1});
@@ -1934,8 +1934,8 @@ public:
     state_next[14] = (EL_species2 + dt * (beta_larval_species2 * mv_species2 - shared.muEL * (1 + (EL_species2 + LL_species2) / KL_species2) * EL_species2 - EL_species2 / shared.dEL) < 0 ? 0 : (EL_species2 + dt * (beta_larval_species2 * mv_species2 - shared.muEL * (1 + (EL_species2 + LL_species2) / KL_species2) * EL_species2 - EL_species2 / shared.dEL)));
     state_next[13] = (LL_species2 + dt * (EL_species2 / shared.dEL - shared.muLL * (1 + shared.gammaL * (EL_species2 + LL_species2) / KL_species2) * LL_species2 - LL_species2 / shared.dLL) < 0 ? 0 : (LL_species2 + dt * (EL_species2 / shared.dEL - shared.muLL * (1 + shared.gammaL * (EL_species2 + LL_species2) / KL_species2) * LL_species2 - LL_species2 / shared.dLL)));
     state_next[12] = (PL_species2 + dt * (LL_species2 / shared.dLL - shared.muPL * PL_species2 - PL_species2 / shared.dPL) < 0 ? 0 : (PL_species2 + dt * (LL_species2 / shared.dLL - shared.muPL * PL_species2 - PL_species2 / shared.dPL)));
-    for (size_t i = 1; i <= shared.dim.n_ud_prev.size; ++i) {
-      state_next[i - 1 + shared.odin.offset.state[43]] = internal.n_prev[i - 1];
+    for (size_t i = 1; i <= shared.dim.n_ud_pop.size; ++i) {
+      state_next[i - 1 + shared.odin.offset.state[43]] = internal.n_pop[i - 1];
     }
     for (size_t i = 1; i <= shared.dim.n_ud_any_prev.size; ++i) {
       state_next[i - 1 + shared.odin.offset.state[44]] = internal.any_prev[i - 1];

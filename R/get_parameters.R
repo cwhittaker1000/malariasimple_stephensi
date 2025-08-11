@@ -82,6 +82,8 @@
 #' @param clin_inc_rendering_max_ages Vector of values (or singe value) of upper age boundaries for clinical incidence output (days)
 #' @param prevalence_rendering_min_ages Vector of values (or singe value) of lower age boundaries for prevalence output (days)
 #' @param prevalence_rendering_max_ages Vector of values (or singe value) of upper age boundaries for prevalence output (days)
+#' @param population_rendering_min_ages Vector of values (or singe value) of lower age boundaries for total population output (days)
+#' @param population_rendering_max_ages Vector of values (or singe value) of upper age boundaries for total population output (days)
 
 #' @param ... Additional arguments
 #' @examples

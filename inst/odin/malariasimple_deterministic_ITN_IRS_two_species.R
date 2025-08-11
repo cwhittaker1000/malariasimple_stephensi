@@ -236,7 +236,7 @@ EIR_species2[,,] <- av_mosq_species2[k] * zeta[j] * psi[i] * Iv_species2/omega
 EIR[,,] <- EIR_species1[i,j,k] + EIR_species2[i,j,k]
 # Note: Previous versions of the model (ICDMM) I've used had av_human[k] in the EIR calculation 
 #       instead of av_mosq - which of these is correct? I had thought av_human?
-#       What is the #difference between av_mosq and av_human actually?
+#       What is the difference between av_mosq and av_human actually?
 
 ##------------------------------------------------------------------------------
 #####################
@@ -363,9 +363,9 @@ init_Iv <- parameter()
 initial(Sv_species1) <- init_Sv * mv0
 initial(Pv_species1) <- init_Pv * mv0
 initial(Iv_species1) <- init_Iv * mv0
-initial(Sv_species2) <- init_Sv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
-initial(Pv_species2) <- init_Pv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
-initial(Iv_species2) <- init_Iv * mv0 * 0.01 ## CHECK - this is a bit of a fudge, but I think this should be fine as the lower carrying capacity will rapidly bring it down, but might want to start close to 0
+initial(Sv_species2) <- init_Sv * mv0 * 0.01 ## This is a bit of a fudge, but I think should be fine. Carrying capacity for this vector will start near 0
+initial(Pv_species2) <- init_Pv * mv0 * 0.01 ## and therefore starting with something small should be fine, especially as we'll run the model for
+initial(Iv_species2) <- init_Iv * mv0 * 0.01 ## 10 years or so to properly equilibrate things beforehand.
 
 # cA is the infectiousness to mosquitoes of humans in the asmyptomatic compartment broken down
 # by age/het/int category, infectiousness depends on p_det which depends on detection immunity
@@ -378,30 +378,30 @@ cA[,,] <- cU + (cD-cU)*p_det[i,j,k]^gamma1
 
 # Force of infection from humans to mosquitoes
 lag_ratesMos <- parameter(type = "integer")
+omega <- parameter() # normalising constant for biting rates
+FOIv_eq <- parameter() # equilibrium FOI
 
-FOIv_eq <- parameter()
-
+## FOI from humans to mosquitoes for species 1
 dim(FOIv_species1) <- lag_ratesMos
-dim(FOIv_species2) <- lag_ratesMos
-
 initial(FOIv_species1[]) <- FOIv_eq*delayGam/lag_ratesMos
-initial(FOIv_species2[]) <- 0.01 * FOIv_eq*delayGam/lag_ratesMos
-
 update(FOIv_species1[1]) <- FOIv_species1[1] + dt*(lag_FOIv_species1 - (lag_ratesMos/delayGam)*FOIv_species1[1])
 update(FOIv_species1[2:lag_ratesMos]) <- FOIv_species1[i] + dt*((lag_ratesMos/delayGam)*FOIv_species1[i-1] - (lag_ratesMos/delayGam)*FOIv_species1[i])
-update(FOIv_species2[1]) <- FOIv_species2[1] + dt*(lag_FOIv_species2 - (lag_ratesMos/delayGam)*FOIv_species2[1])
-update(FOIv_species2[2:lag_ratesMos]) <- FOIv_species2[i] + dt*((lag_ratesMos/delayGam)*FOIv_species2[i-1] - (lag_ratesMos/delayGam)*FOIv_species2[i])
-
 dim(FOIvijk_species1) <- c(na,nh,num_int)
-dim(FOIvijk_species2) <- c(na,nh,num_int)
-omega <- parameter() # normalising constant for biting rates
 FOIvijk_species1[1:na, 1:nh, 1:num_int] <- ((cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k])/H) *
   zeta[j] * av_mosq_species1[k]*psi[i]/omega ## For discrete human compartments
 lag_FOIv_species1=sum(FOIvijk_species1)
+
+## FOI from humans to mosquitoes for species 2
+dim(FOIv_species2) <- lag_ratesMos
+initial(FOIv_species2[]) <- 0.01 * FOIv_eq*delayGam/lag_ratesMos
+update(FOIv_species2[1]) <- FOIv_species2[1] + dt*(lag_FOIv_species2 - (lag_ratesMos/delayGam)*FOIv_species2[1])
+update(FOIv_species2[2:lag_ratesMos]) <- FOIv_species2[i] + dt*((lag_ratesMos/delayGam)*FOIv_species2[i-1] - (lag_ratesMos/delayGam)*FOIv_species2[i])
+dim(FOIvijk_species2) <- c(na,nh,num_int)
 FOIvijk_species2[1:na, 1:nh, 1:num_int] <- ((cT*T[i,j,k] + cD*D[i,j,k] + cA[i,j,k]*A[i,j,k] + cU*U[i,j,k])/H) *
   zeta[j] * av_mosq_species2[k]*psi[i]/omega ## For discrete human compartments
 lag_FOIv_species2=sum(FOIvijk_species2)
 
+## Incidence of infection (S -> P) and extrinsic incubation period (P -> I) term for mosquitoes of species 1
 ince_species1 <- FOIv_species1[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species1
 initial(ince_delay_species1[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
 dim(ince_delay_species1) <- lag_ratesMos
@@ -410,6 +410,7 @@ update(ince_delay_species1[2:lag_ratesMos]) <- ince_delay_species1[i] + dt*((lag
                                                             (lag_ratesMos/delayMos_use)*ince_delay_species1[i])
 incv_species1 <- ince_delay_species1[lag_ratesMos]*lag_ratesMos/delayMos_use * surv_species1
 
+## Incidence of infection (S -> P) and extrinsic incubation period (P -> I) term for mosquitoes of species 2
 ince_species2 <- FOIv_species2[lag_ratesMos] * lag_ratesMos/delayGam * Sv_species2
 initial(ince_delay_species2[]) <- FOIv_eq*init_Sv*mv0*delayMos_use/lag_ratesMos 
 dim(ince_delay_species2) <- lag_ratesMos
@@ -431,6 +432,7 @@ surv_species2 <- exp(-mu_species2*delayMos_use)
 betaa_species1 <- 0.5*PL_species1/dPL
 betaa_species2 <- 0.5*PL_species2/dPL
 
+## Updating the mature adult mosquito terms for each species
 update(Sv_species1) <- if(Sv_species1 + dt*(-ince_species1 - mu_species1*Sv_species1 + betaa_species1) < 0) 0 else 
   Sv_species1 + dt*(-ince_species1 - mu_species1*Sv_species1 + betaa_species1)
 update(Pv_species1) <- if(Pv_species1 + dt*(ince_species1 - incv_species1 - mu_species1*Pv_species1) < 0) 0 else 
@@ -458,14 +460,6 @@ human_pop <- parameter()
 initial(total_M) <- 0
 update(total_M) <- (mv * human_pop) / omega #Convert to same units as malariasimulation
 
-# initial(Sm_count) <- 0
-# update(Sm_count) <- (Sv * human_pop) / omega
-# 
-# initial(Pm_count) <- 0
-# update(Pm_count) <- (Pv * human_pop) / omega
-# 
-# initial(Im_count) <- 0
-# update(Im_count) <- (Iv * human_pop) / omega
 ##------------------------------------------------------------------------------
 ###################
 ## LARVAL STATES ##
@@ -489,7 +483,7 @@ muPL <- parameter()
 gammaL <- parameter()
 
 # fitted entomological parameters:
-mv0 <- parameter() # initial mosquito density
+mv0 <- parameter() # initial mosquito density (determined by the initial EIR set outside the model and calculated in equilibrium equation)
 mum <- parameter() # baseline mosquito death rate
 foraging_time <- parameter()
 gonotrophic_cycle <- parameter()
@@ -508,20 +502,7 @@ b_lambda <- (gammaL*muLL/muEL-dEL/dLL+(gammaL-1)*muLL*dEL)
 lambda_species1 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_species1*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
 lambda_species2 <- -0.5*b_lambda + sqrt(0.25*b_lambda^2 + gammaL*beta_larval_species2*muLL*dEL/(2*muEL*mum_use*dLL*(1+dPL*muPL)))
 
-## Previous versions had both mv0 and mu0, which were used in different places and not together in K0.
-## i.e. previously had for ICDMM:
-## K0 <- 2*dLL*mu0*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1) ## ie just using mu0
-## in malariasimple:
-## K0 <- 2*dLL*mv0*mum_use*(1+dPL*muPL)*gammaL*(lambda+1)/(lambda/(muLL*dEL)-1/(muLL*dLL)-1)
-# parameters for species 1 density and species 2 density (latter increasing in abundance over time - NOTE this is distinct and on top of the custom seasonality)
-# density_vec_species1 <- parameter()
-# dim(density_vec_species1) <- n_days +1
-# density_vec_species2 <- parameter()
-# dim(density_vec_species2) <- n_days +1
-# K0_species1 <- if(as.integer(time / dt) == 0) 2*density_vec_species1[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) else 
-#   2*density_vec_species1[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
-# K0_species2 <- if(as.integer(time / dt) == 0) 2*density_vec_species2[as.integer(1)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) else 
-#   2*density_vec_species2[as.integer(time / dt)]*mv0*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
+# Carrying capacity related parameters
 density_vec_species1_input <- parameter()
 density_vec_species1 <- interpolate(days, density_vec_species1_input, "linear")
 dim(density_vec_species1_input) <- n_days +1
@@ -531,22 +512,19 @@ density_vec_species2 <- interpolate(days, density_vec_species2_input, "linear")
 dim(density_vec_species2_input) <- n_days +1
 
 # mv0 is pre-calculated species 1 density required to give species 1 density to produce pre-specified EIR at baseline
-## Note we replaced mv0 in K0_species1 with density_vec_species1 - need to remember when running this to set the equilibrium mv0 calculated from inputted EIR
-## to be the contents of density_vec_species1
+## Note we replaced mv0 in K0_species1 with density_vec_species1 - need to remember when running this to set density_vec_species1 to the equilibrium mv0 calculated from inputted EIR
+## i.e. set the contents of density_vec_species1 to be mv0
 K0_species1 <- 2*density_vec_species1*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species1+1)/(lambda_species1/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 K0_species2 <- 2*density_vec_species2*dLL*mum_use*(1+dPL*muPL)*gammaL*(lambda_species2+1)/(lambda_species2/(muLL*dEL)-1/(muLL*dLL)-1) # is having mv0 and mum_use right here?
 
 # Defining seasonal variation in carrying capacity (KL = base carrying capacity K0 * effect for time of year theta)
-theta_species1 <- interpolate(days, theta_species1_input, "linear")
-theta_species2 <- interpolate(days, theta_species2_input, "linear")
-
 theta_species1_input <- parameter()
+theta_species1 <- interpolate(days, theta_species1_input, "linear")
 dim(theta_species1_input) <- n_days +1
-# theta_species1 <- if(as.integer(time / dt) == 0) theta_species1_input[as.integer(1)] else theta_species1_input[as.integer(time / dt)]
 
 theta_species2_input <- parameter()
+theta_species2 <- interpolate(days, theta_species2_input, "linear")
 dim(theta_species2_input) <- n_days +1
-# theta_species2 <- if(as.integer(time / dt) == 0) theta_species2_input[as.integer(1)] else theta_species2_input[as.integer(time / dt)]
 
 # Converting all that into time-varying carryin capacity
 KL_species1 <- K0_species1 * theta_species1
@@ -667,7 +645,6 @@ phi_indoors_species1 <- parameter() # endophagy indoors for species 1
 Q0_species2 <- parameter() # proportion of anthropophagy for species 2
 phi_bed_species2 <- parameter() # endophagy in bed for species 2
 phi_indoors_species2 <- parameter() # endophagy indoors for species 2
-
 # Note: Previously there was also the parameter "chi" in ICDMM model, which referred
 #       to vector endophily. This went into d_IRS and s_IRS, which in turn
 #       defined w3. s_irs is now a time-series calculated outside the model and so
@@ -709,6 +686,8 @@ w_species2_[4] <- w1_species2 * (1 - irs_eff_cov) * (1 - itn_eff_cov) +
 w_species2[] <- w_species2_[i]
 dim(w_species2) <- num_int
 
+# Note: yy not used at all in this version of the model - does that seem right?
+#       It featured in av_human which isn't used here - should it be??
 # probability that mosq feeds during a single attempt for each int. cat.
 # dim(yy_species1_) <- 4
 # yy_species1_[1] <- 1
@@ -809,12 +788,7 @@ av_mosq_species2[1:num_int] <- av_species2 * w_species2[i] / wh_species2 # rate 
 ###################
 ##------------------------------------------------------------------------------
 
-prev_dim <- parameter()
-dim(min_age_prev) <- prev_dim
-dim(max_age_prev) <- prev_dim
-min_age_prev <- parameter(type = "integer")
-max_age_prev <- parameter(type = "integer")
-
+### Outputs: Total Population
 n_dim <- parameter()
 dim(min_age_n) <- n_dim
 dim(max_age_n) <- n_dim
@@ -822,12 +796,19 @@ min_age_n <- parameter(type = "integer")
 max_age_n <- parameter(type = "integer")
 
 ##Proportion of population in user defined prevalence age groups (i.e. number of individuals)
-dim(n_prev) <- n_dim
-dim(n_ud_prev) <- n_dim
-initial(n_ud_prev[]) <- min_age_n[i] #user defined prevalence
-n_prev[1:n_dim] <- sum(S[min_age_n[i]:max_age_n[i],,]) + sum(T[min_age_n[i]:max_age_n[i],,]) + sum(D[min_age_n[i]:max_age_n[i],,]) +
+dim(n_pop) <- n_dim
+dim(n_ud_pop) <- n_dim
+initial(n_ud_pop[]) <- min_age_n[i] #user defined prevalence
+n_pop[1:n_dim] <- sum(S[min_age_n[i]:max_age_n[i],,]) + sum(T[min_age_n[i]:max_age_n[i],,]) + sum(D[min_age_n[i]:max_age_n[i],,]) +
   sum(A[min_age_n[i]:max_age_n[i],,]) + sum(U[min_age_n[i]:max_age_n[i],,]) + sum(P[min_age_n[i]:max_age_n[i],,])
-update(n_ud_prev[]) <- n_prev[i]
+update(n_ud_pop[]) <- n_pop[i]
+
+### Outputs: Malaria Prevalence
+prev_dim <- parameter()
+dim(min_age_prev) <- prev_dim
+dim(max_age_prev) <- prev_dim
+min_age_prev <- parameter(type = "integer")
+max_age_prev <- parameter(type = "integer")
 
 ##Proportion of population in user defined prevalence age groups with any malaria
 dim(any_prev) <- prev_dim
